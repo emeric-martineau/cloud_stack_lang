@@ -45,9 +45,9 @@ assignments -> assignment assignments : lists:merge('$1', '$2').
 
 assignment -> name '=' expr : [{assign, '$1', '$3'}].
 
-expr -> int : unwrap('$1').
-expr -> atom : unwrap('$1').
-expr -> float : unwrap('$1').
+expr -> int : '$1'.
+expr -> atom : '$1'.
+expr -> float : '$1'.
 expr -> name : '$1'.
 expr -> simple_string : '$1'.
 expr -> interpolate_string : '$1'.
@@ -62,31 +62,10 @@ expr -> expr '/' expr : {div_op, '$1', '$3'}.
 exprs -> expr : ['$1'].
 exprs -> expr exprs : lists:merge(['$1'], '$2').
 
-map -> open_map close_map : build_empty_map('$1').
-map -> open_map assignments close_map : build_map('$1', '$2').
+map -> open_map close_map : {build_empty_map, '$1'}.
+map -> open_map assignments close_map : {build_map, '$1', '$2'}.
 
-array -> open_array close_array : build_empty_array('$1').
-array -> open_array exprs close_array : build_array('$1', '$2').
+array -> open_array close_array : {build_empty_array, '$1'}.
+array -> open_array exprs close_array : {build_array, '$1', '$2'}.
 
 Erlang code.
-
-unwrap({int, Line, Value}) ->
-  {int, Line, list_to_integer(Value)};
-unwrap({atom, Line, Value}) ->
-  {atom, Line, Value};
-unwrap({float, Line, Value}) ->
-  {float, Line, list_to_float(Value)}.
-
-build_empty_map({open_map, Line}) ->
-  {map, Line, #{}}.
-
-build_map(Open_Map, Map) ->
-  {open_map, Line} = Open_Map,
-  {map, Line, Map}.
-
-build_empty_array({open_array, Line}) ->
-  {array, Line, []}.
-
-build_array(Open_Array, Array) ->
-  {open_array, Line} = Open_Array,
-  {array, Line, Array}.

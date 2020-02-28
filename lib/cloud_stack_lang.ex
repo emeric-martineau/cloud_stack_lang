@@ -23,16 +23,34 @@ defmodule CloudStackLang.Parser do
   end
 
   defp reduce_to_value({:int, _line, value}, _state) do
-    value
+    List.to_integer(value)
   end
 
   defp reduce_to_value({:float, _line, value}, _state) do
-    value
+    List.to_float(value)
   end
 
   defp reduce_to_value({:atom, _line, atom_name}, _state) do
     [_ | atom] = atom_name
     List.to_atom(atom)
+  end
+
+  defp reduce_to_value({:build_empty_map, _open_map}, _state) do
+    %{}
+  end
+
+  defp reduce_to_value({:build_map, open_map, assignments}, _state) do
+    {:open_map, line} = open_map
+    {:map, line, assignments}
+  end
+
+  defp reduce_to_value({:build_empty_array, _open_map}, _state) do
+    []
+  end
+
+  defp reduce_to_value({:build_array, open_map, assignments}, _state) do
+    {:open_array, line} = open_map
+    {:array, line, assignments}
   end
 
   defp reduce_to_value({:name, line, var_name}, state) do
