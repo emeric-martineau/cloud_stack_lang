@@ -1,8 +1,2 @@
-var1 = 3
-map3 = {
-  a = var1 + 2
-  b = {
-    a1 = var1
-    b1 = 2
-  }
-}
+a = "ererer"
+b = "${a}"

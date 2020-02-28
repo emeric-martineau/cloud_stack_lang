@@ -22,7 +22,8 @@ OPEN_MAP                  = \{
 CLOSE_MAP                 = \}
 OPEN_PARENTHESIS          = \(
 CLOSE_PARENTHESIS         = \)
-
+OPEN_ARRAY                = \[
+CLOSE_ARRAY               = \]
 
 %% The Rule section defines what to return for each token. Typically you'd
 %% want the TokenLine and the TokenChars to capture the matched

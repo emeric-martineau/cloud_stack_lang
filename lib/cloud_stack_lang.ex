@@ -5,16 +5,19 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Operator.Sub
 
   defp reduce_to_value({:simple_string, _line, value}, _state) do
-    CloudStackLang.String.clear(value)
+    value
+    |> List.to_string
+    |> CloudStackLang.String.clear
   end
 
-  defp reduce_to_value({:interpolate_string, _line, value}, _state) do
-    # TODO interpolation
-    CloudStackLang.String.clear(value)
+  defp reduce_to_value({:interpolate_string, _line, value}, state) do
+    value
+    |> List.to_string
+    |> CloudStackLang.String.interpolate(state)
+    |> CloudStackLang.String.clear
   end
 
   defp reduce_to_value({:map, _line, value}, state) do
-    # TODO
     Enum.map(value, fn {:map_arg, {:name, _, key}, expr} -> {key, reduce_to_value(expr, state)} end)
     |> Map.new
   end
@@ -66,7 +69,9 @@ defmodule CloudStackLang.Parser do
   end
 
   defp reduce_to_value({:name, line, var_name}, state) do
-    case state[var_name] do
+    v_name = List.to_string(var_name)
+
+    case state[v_name] do
       nil -> {:error, line, "Variable name '#{var_name}' is not declared"}
       v -> v
     end
@@ -106,10 +111,11 @@ defmodule CloudStackLang.Parser do
 
   defp evaluate_tree([{:assign, {:name, _line, lhs}, rhs} | tail], state) do
     rhs_value = reduce_to_value(rhs, state)
+    key = List.to_string(lhs)
 
     case rhs_value do
       {:error, line, msg} -> {:error, line, msg}
-      value -> evaluate_tree(tail, Map.merge(state, %{lhs => value}))
+      value -> evaluate_tree(tail, Map.merge(state, %{key => value}))
     end
   end
 
