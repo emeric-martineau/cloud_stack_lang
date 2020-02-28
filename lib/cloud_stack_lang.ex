@@ -5,13 +5,12 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Operator.Sub
 
   defp reduce_to_value({:simple_string, _line, value}, _state) do
-    # TODO
-    value
+    CloudStackLang.List.String.clear(value)
   end
 
   defp reduce_to_value({:interpolate_string, _line, value}, _state) do
-    # TODO
-    value
+    # TODO interpolation
+    CloudStackLang.List.String.clear(value)
   end
 
   defp reduce_to_value({:map, _line, value}, _state) do
@@ -31,13 +30,14 @@ defmodule CloudStackLang.Parser do
     value
   end
 
-  defp reduce_to_value({:atom, _line, atom}, _state) do
-    atom
+  defp reduce_to_value({:atom, _line, atom_name}, _state) do
+    [_ | atom] = atom_name
+    List.to_atom(atom)
   end
 
-  defp reduce_to_value({:name, line, atom}, state) do
-    case state[atom] do
-      nil -> {:error, line, "Variable name '#{atom}' is not declared"}
+  defp reduce_to_value({:name, line, var_name}, state) do
+    case state[var_name] do
+      nil -> {:error, line, "Variable name '#{var_name}' is not declared"}
       v -> v
     end
   end

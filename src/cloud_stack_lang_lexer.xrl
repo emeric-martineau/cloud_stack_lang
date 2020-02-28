@@ -34,12 +34,12 @@ Rules.
 \*                          : {token, {'*',  TokenLine}}.
 {DIV}                       : {token, {'/',  TokenLine}}.
 \=                          : {token, {'=',  TokenLine}}.
-{ATOM}                      : {token, {atom, TokenLine, to_atom(TokenChars)}}.
+{ATOM}                      : {token, {atom, TokenLine, TokenChars}}.
 {NAME}                      : {token, {name, TokenLine, TokenChars}}.
 {INT}                       : {token, {int,  TokenLine, TokenChars}}.
 {FLOAT}                     : {token, {float,  TokenLine, TokenChars}}.
-{SIMPLE_STRING}             : {token, {simple_string, TokenLine, clear_simple_string(TokenChars)}}.
-{INTERPOLATE_STRING}        : {token, {interpolate_string, TokenLine, clear_interpolate_string(TokenChars)}}.
+{SIMPLE_STRING}             : {token, {simple_string, TokenLine, TokenChars}}.
+{INTERPOLATE_STRING}        : {token, {interpolate_string, TokenLine, TokenChars}}.
 {WHITESPACE}+               : skip_token.
 {OPEN_MAP}                  : {token, {open_map,  TokenLine}}.
 {CLOSE_MAP}                 : {token, {close_map,  TokenLine}}.
@@ -52,15 +52,3 @@ Rules.
 %% not good style, but just to show how to use the code section).
 
 Erlang code.
-
-%% Given a ":name", chop off : and return name as an atom.
-to_atom([$:|Chars]) ->
-    list_to_atom(Chars).
-
-clear_simple_string([$'|Chars]) ->
-  {L, _} = lists:split(length(Chars) - 1, Chars),
-  L.
-
-clear_interpolate_string([$"|Chars]) ->
-  {L, _} = lists:split(length(Chars) - 1, Chars),
-  L.
