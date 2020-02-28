@@ -99,6 +99,10 @@ defmodule CloudStackLang.Parser do
     Div.reduce(lvalue, rvalue)
   end
 
+  defp reduce_to_value({:parenthesis, expr}, state) do
+    reduce_to_value(expr, state)
+  end
+
   defp evaluate_tree([{:assign, {:name, _line, lhs}, rhs} | tail], state) do
     rhs_value = reduce_to_value(rhs, state)
 

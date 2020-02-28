@@ -11,6 +11,7 @@ Nonterminals
   exprs
   map
   array
+  parenthesis
 .
 
 Terminals
@@ -28,6 +29,7 @@ Terminals
   '='
   open_map close_map
   open_array close_array
+  open_parenthesis close_parenthesis
 .
 
 Rootsymbol
@@ -62,6 +64,7 @@ expr -> simple_string : '$1'.
 expr -> interpolate_string : '$1'.
 expr -> map : '$1'.
 expr -> array : '$1'.
+expr -> open_parenthesis expr close_parenthesis : {parenthesis, '$2'}.
 
 expr -> expr '+' expr : {add_op, '$1', '$3'}.
 expr -> expr '-' expr : {sub_op, '$1', '$3'}.
@@ -76,5 +79,7 @@ map -> open_map map_args close_map : {build_map, '$1', '$2'}.
 
 array -> open_array close_array : {build_empty_array, '$1'}.
 array -> open_array exprs close_array : {build_array, '$1', '$2'}.
+
+%function_call -> open_parenthesis close_parenthesis : {fct_call_empty, '$1'}.
 
 Erlang code.
