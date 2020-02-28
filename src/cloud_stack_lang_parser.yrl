@@ -5,8 +5,8 @@
 
 Nonterminals
   root
-  assignment
-  assignments
+  assignment assignments
+  map_arg map_args
   expr
   exprs
   map
@@ -45,6 +45,11 @@ assignments -> assignment assignments : lists:merge('$1', '$2').
 
 assignment -> name '=' expr : [{assign, '$1', '$3'}].
 
+map_args -> map_arg : '$1'.
+map_args -> map_arg map_args : lists:merge('$1', '$2').
+
+map_arg -> name '=' expr : [{map_arg, '$1', '$3'}].
+
 expr -> int : '$1'.
 expr -> atom : '$1'.
 expr -> float : '$1'.
@@ -63,7 +68,7 @@ exprs -> expr : ['$1'].
 exprs -> expr exprs : lists:merge(['$1'], '$2').
 
 map -> open_map close_map : {build_empty_map, '$1'}.
-map -> open_map assignments close_map : {build_map, '$1', '$2'}.
+map -> open_map map_args close_map : {build_map, '$1', '$2'}.
 
 array -> open_array close_array : {build_empty_array, '$1'}.
 array -> open_array exprs close_array : {build_array, '$1', '$2'}.

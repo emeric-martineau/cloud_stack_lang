@@ -13,7 +13,7 @@ defmodule CloudStackLang.Parser do
     CloudStackLang.List.String.clear(value)
   end
 
-  defp reduce_to_value({:map, _line, value}, _state) do
+  defp reduce_to_value({:map, _line, value}, state) do
     # TODO
     value
   end
@@ -39,18 +39,18 @@ defmodule CloudStackLang.Parser do
     %{}
   end
 
-  defp reduce_to_value({:build_map, open_map, assignments}, _state) do
+  defp reduce_to_value({:build_map, open_map, assignments}, state) do
     {:open_map, line} = open_map
-    {:map, line, assignments}
+    reduce_to_value({:map, line, assignments}, state)
   end
 
   defp reduce_to_value({:build_empty_array, _open_map}, _state) do
     []
   end
 
-  defp reduce_to_value({:build_array, open_map, assignments}, _state) do
+  defp reduce_to_value({:build_array, open_map, assignments}, state) do
     {:open_array, line} = open_map
-    {:array, line, assignments}
+    reduce_to_value({:array, line, assignments}, state)
   end
 
   defp reduce_to_value({:name, line, var_name}, state) do
