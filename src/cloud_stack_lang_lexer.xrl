@@ -6,8 +6,8 @@
 
 Definitions.
 
-INT                       = [1-9][0-9]*
-FLOAT                     = [1-9][0-9]*\.[0-9]+
+INT                       = -?[1-9][0-9]*
+FLOAT                     = -?[1-9][0-9]*\.[0-9]+
 ATOM                      = :[a-zA-Z_][a-zA-Z0-9_]*
 NAME                      = [a-zA-Z_][a-zA-Z0-9_]*
 WHITESPACE                = [\s\t\n\r]
