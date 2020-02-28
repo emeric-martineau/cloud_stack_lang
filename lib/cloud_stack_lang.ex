@@ -13,9 +13,10 @@ defmodule CloudStackLang.Parser do
     CloudStackLang.String.clear(value)
   end
 
-  defp reduce_to_value({:map, _line, value}, _state) do
+  defp reduce_to_value({:map, _line, value}, state) do
     # TODO
-    value
+    Enum.map(value, fn {:map_arg, {:name, _, key}, expr} -> {key, reduce_to_value(expr, state)} end)
+    |> Map.new
   end
 
   defp reduce_to_value({:array, _line, value}, state) do
