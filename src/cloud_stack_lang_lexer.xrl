@@ -8,6 +8,8 @@ Definitions.
 
 INT                       = -?[1-9][0-9]*
 FLOAT                     = -?[1-9][0-9]*\.[0-9]+
+HEXA                      = 0[xX][a-fA-F0-9]+
+OCTAL                     = 0[oO][0-7]+
 ATOM                      = :[a-zA-Z_][a-zA-Z0-9_]*
 NAME                      = [a-zA-Z_][a-zA-Z0-9_]*
 WHITESPACE                = [\s\t\n\r]
@@ -38,6 +40,8 @@ Rules.
 {NAME}                      : {token, {name, TokenLine, TokenChars}}.
 {INT}                       : {token, {int,  TokenLine, TokenChars}}.
 {FLOAT}                     : {token, {float,  TokenLine, TokenChars}}.
+{HEXA}                      : {token, {hexa,  TokenLine, TokenChars}}.
+{OCTAL}                     : {token, {octal,  TokenLine, TokenChars}}.
 {SIMPLE_STRING}             : {token, {simple_string, TokenLine, TokenChars}}.
 {INTERPOLATE_STRING}        : {token, {interpolate_string, TokenLine, TokenChars}}.
 {WHITESPACE}+               : skip_token.

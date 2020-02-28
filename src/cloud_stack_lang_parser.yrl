@@ -15,6 +15,8 @@ Nonterminals
 
 Terminals
   int
+  hexa
+  octal
   atom
   float
   name
@@ -53,6 +55,8 @@ map_arg -> name '=' expr : [{map_arg, '$1', '$3'}].
 expr -> int : '$1'.
 expr -> atom : '$1'.
 expr -> float : '$1'.
+expr -> hexa : '$1'.
+expr -> octal : '$1'.
 expr -> name : '$1'.
 expr -> simple_string : '$1'.
 expr -> interpolate_string : '$1'.

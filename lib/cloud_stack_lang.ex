@@ -5,15 +5,15 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Operator.Sub
 
   defp reduce_to_value({:simple_string, _line, value}, _state) do
-    CloudStackLang.List.String.clear(value)
+    CloudStackLang.String.clear(value)
   end
 
   defp reduce_to_value({:interpolate_string, _line, value}, _state) do
     # TODO interpolation
-    CloudStackLang.List.String.clear(value)
+    CloudStackLang.String.clear(value)
   end
 
-  defp reduce_to_value({:map, _line, value}, state) do
+  defp reduce_to_value({:map, _line, value}, _state) do
     # TODO
     value
   end
@@ -28,6 +28,17 @@ defmodule CloudStackLang.Parser do
 
   defp reduce_to_value({:float, _line, value}, _state) do
     List.to_float(value)
+  end
+
+  defp reduce_to_value({:hexa, _line, value}, _state) do
+    value
+    |> List.to_string
+    |> String.slice(2..-1)
+    |> Integer.parse(16)
+  end
+
+  defp reduce_to_value({:octal, _line, value}, _state) do
+    List.to_integer(value)
   end
 
   defp reduce_to_value({:atom, _line, atom_name}, _state) do

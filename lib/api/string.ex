@@ -1,4 +1,4 @@
-defmodule CloudStackLang.List.String do
+defmodule CloudStackLang.String do
   @moduledoc """
   This module contains all routine to help manage strings.
   """
@@ -8,19 +8,19 @@ defmodule CloudStackLang.List.String do
 
   ## Examples
 
-      iex> CloudStackLang.List.String.clear('\'hello world\'')
+      iex> CloudStackLang.String.clear('\'hello world\'')
       "hello world"
 
-      iex> CloudStackLang.List.String.clear('\'hello\\nworld\'')
+      iex> CloudStackLang.String.clear('\'hello\\nworld\'')
       "hello\nworld"
 
-      iex> CloudStackLang.List.String.clear('\'hello\\rworld\'')
+      iex> CloudStackLang.String.clear('\'hello\\rworld\'')
       "hello\rworld"
 
-      iex> CloudStackLang.List.String.clear('\'hello\\tworld\'')
+      iex> CloudStackLang.String.clear('\'hello\\tworld\'')
       "hello\tworld"
 
-      iex> CloudStackLang.List.String.clear('\'hello\\\'world\'')
+      iex> CloudStackLang.String.clear('\'hello\\\'world\'')
       "hello\'world"
   """
   def clear(value) do
