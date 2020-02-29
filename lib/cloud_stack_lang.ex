@@ -69,7 +69,7 @@ defmodule CloudStackLang.Parser do
   end
 
   defp reduce_to_value({:name, line, var_name}, state) do
-    v_name = List.to_string(var_name)
+    v_name = List.to_atom(var_name)
 
     case state[v_name] do
       nil -> {:error, line, "Variable name '#{var_name}' is not declared"}
@@ -111,7 +111,7 @@ defmodule CloudStackLang.Parser do
 
   defp evaluate_tree([{:assign, {:name, _line, lhs}, rhs} | tail], state) do
     rhs_value = reduce_to_value(rhs, state)
-    key = List.to_string(lhs)
+    key = List.to_atom(lhs)
 
     case rhs_value do
       {:error, line, msg} -> {:error, line, msg}

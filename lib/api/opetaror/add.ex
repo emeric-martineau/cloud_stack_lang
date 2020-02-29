@@ -24,4 +24,6 @@ defmodule CloudStackLang.Operator.Add do
   def reduce(lvalue, rvalue) do
     lvalue + rvalue
   end
+
+  # TODO support for string, array and map
 end

@@ -39,27 +39,38 @@ defmodule CloudStackLang.String do
 
   ## Examples
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{"var1" => 1})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => 1})
       "'1'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{"var1" => 1.13})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => 1.13})
       "'1.13'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{"var1" => "2"})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => "2"})
       "'2'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{"var1" => [1, 2]})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => [1, 2]})
       "'<list>'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{"var1" => %{ "a" => 2 }})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => %{ "a" => 2 }})
       "'<map>'"
+
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:e => 3})
+      "'null'"
   """
   def interpolate(value, state) do
-    s1 = Regex.replace(~R/^\$\{([^}]*)?\}/, value, fn _, _, key -> unwrap(state[key]) end)
-    Regex.replace(~R/(\$\{([^}]*)?\})/, s1, fn _, _, key -> unwrap(state[key]) end)
+    # First replace ${xxx} at start of line
+    s1 = Regex.replace(~R/^\$\{([^}]*)?\}/, value, fn _, _, key -> get(state, key) end)
+    # then replace all ${xxx}
+    Regex.replace(~R/(\$\{([^}]*)?\})/, s1, fn _, _, key -> get(state, key) end)
   end
 
   # TODO support ${xxx[1]} for array and ${xxx["key"]} for map
+  # TODO raise error if variable not found
+
+  defp get(state, key) do
+    k = String.to_atom(key)
+    unwrap(state[k])
+  end
 
   defp unwrap(value) when is_map(value) do
     "<map>"
