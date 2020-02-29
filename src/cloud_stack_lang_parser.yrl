@@ -11,7 +11,6 @@ Nonterminals
   exprs
   map
   array
-  parenthesis
 .
 
 Terminals
@@ -27,6 +26,7 @@ Terminals
   '*'
   '/'
   '='
+  '^'
   open_map close_map
   open_array close_array
   open_parenthesis close_parenthesis
@@ -41,6 +41,7 @@ Left 300 '+'.
 Left 300 '-'.
 Left 400 '*'.
 Left 400 '/'.
+Left 500 '^'.
 
 root -> assignments : '$1'.
 
@@ -70,6 +71,7 @@ expr -> expr '+' expr : {add_op, '$1', '$3'}.
 expr -> expr '-' expr : {sub_op, '$1', '$3'}.
 expr -> expr '*' expr : {mul_op, '$1', '$3'}.
 expr -> expr '/' expr : {div_op, '$1', '$3'}.
+expr -> expr '^' expr : {exp_op, '$1', '$3'}.
 
 exprs -> expr : ['$1'].
 exprs -> expr exprs : lists:merge(['$1'], '$2').

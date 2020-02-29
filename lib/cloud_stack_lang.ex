@@ -3,6 +3,7 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Operator.Div
   alias CloudStackLang.Operator.Mul
   alias CloudStackLang.Operator.Sub
+  alias CloudStackLang.Operator.Exp
 
   defp reduce_to_value({:simple_string, _line, value}, _state) do
     value
@@ -103,6 +104,13 @@ defmodule CloudStackLang.Parser do
     rvalue = reduce_to_value(rhs, state)
 
     Div.reduce(lvalue, rvalue)
+  end
+
+  defp reduce_to_value({:exp_op, lhs, rhs}, state) do
+    lvalue = reduce_to_value(lhs, state)
+    rvalue = reduce_to_value(rhs, state)
+
+    Exp.reduce(lvalue, rvalue)
   end
 
   defp reduce_to_value({:parenthesis, expr}, state) do
