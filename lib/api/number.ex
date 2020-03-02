@@ -9,7 +9,7 @@ defmodule CloudStackLang.Number do
   ## Examples
 
       iex> CloudStackLang.Number.from_hexa('0xfA')
-      250
+      {:int, 250}
   """
   def from_hexa(value) do
     {number, _} = value
@@ -18,7 +18,7 @@ defmodule CloudStackLang.Number do
                   |> String.downcase
                   |> Integer.parse(16)
 
-    number
+    {:int, number}
   end
 
   @doc ~S"""
@@ -27,7 +27,7 @@ defmodule CloudStackLang.Number do
   ## Examples
 
       iex> CloudStackLang.Number.from_octal('0o437')
-      287
+      {:int, 287}
   """
   def from_octal(value) do
     {number, _} = value
@@ -35,6 +35,6 @@ defmodule CloudStackLang.Number do
                   |> String.slice(2..-1)
                   |> Integer.parse(8)
 
-    number
+    {:int, number}
   end
 end

@@ -39,19 +39,19 @@ defmodule CloudStackLang.String do
 
   ## Examples
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => 1})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:int, 1}})
       "'1'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => 1.13})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:float, 1.13}})
       "'1.13'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => "2"})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:string, "2"}})
       "'2'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => [1, 2]})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:array, [1, 2]}})
       "'<list>'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => %{ "a" => 2 }})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:map, %{ "a" => 2 }}})
       "'<map>'"
 
       iex> CloudStackLang.String.interpolate("'${var1}'", %{:e => 3})
@@ -72,19 +72,23 @@ defmodule CloudStackLang.String do
     unwrap(state[k])
   end
 
-  defp unwrap(value) when is_map(value) do
+  defp unwrap({:string, value}) do
+    value
+  end
+
+  defp unwrap({:map, _value}) do
     "<map>"
   end
 
-  defp unwrap(value) when is_list(value) do
+  defp unwrap({:array, _value}) do
     "<list>"
   end
 
-  defp unwrap(value) when is_integer(value) do
+  defp unwrap({:int, value}) do
     Integer.to_string(value)
   end
 
-  defp unwrap(value) when is_float(value) do
+  defp unwrap({:float, value}) do
     Float.to_string(value)
   end
 

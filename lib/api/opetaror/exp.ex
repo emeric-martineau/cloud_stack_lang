@@ -4,34 +4,42 @@ defmodule CloudStackLang.Operator.Exp do
 
   ## Examples
 
-    iex> CloudStackLang.Operator.Exp.reduce(2, 0)
-    1
+    iex> CloudStackLang.Operator.Exp.reduce({:int, 2}, {:int, 0})
+    {:int, 1}
 
-    iex> CloudStackLang.Operator.Exp.reduce(2, 2)
-    4
+    iex> CloudStackLang.Operator.Exp.reduce({:int, 2}, {:int, 2})
+    {:int, 4}
 
-    iex> CloudStackLang.Operator.Exp.reduce(2, 3)
-    8
-
-    iex> CloudStackLang.Operator.Exp.reduce(2.8, 2.9)
-    19.80424502306346
+    iex> CloudStackLang.Operator.Exp.reduce({:float, 2.8}, {:int, 2.9})
+    {:float, 19.80424502306346}
 
     iex> CloudStackLang.Operator.Exp.reduce({:error, 1, "hello"}, 1)
-    {:error, 1, "hello"}
+    {:error, "hello"}
 
     iex> CloudStackLang.Operator.Exp.reduce(1, {:error, 1, "hello"})
-    {:error, 1, "hello"}
+    {:error, "hello"}
   """
-  def reduce({:error, line, msg}, _rvalue) do
-    {:error, line, msg}
+  def reduce({:error, _line, msg}, _rvalue) do
+    {:error, msg}
   end
 
-  def reduce(_lvalue, {:error, line, msg}) do
-    {:error, line, msg}
+  def reduce(_lvalue, {:error, _line, msg}) do
+    {:error, msg}
+  end
+
+  def reduce({:int, lvalue}, {:int, rvalue}) do
+    {:int, Math.pow(lvalue, rvalue)}
+  end
+
+  def reduce({:float, lvalue}, {:int, rvalue}) do
+    {:float, Math.pow(lvalue, rvalue)}
+  end
+
+  def reduce({:int, lvalue}, {:float, rvalue}) do
+    {:float, Math.pow(lvalue, rvalue)}
   end
 
   def reduce(lvalue, rvalue) do
-    Math.pow(lvalue, rvalue)
+    {:error, "'^' operator not supported for #{inspect lvalue}, #{inspect rvalue}"}
   end
-
 end

@@ -4,69 +4,79 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Operator.Mul
   alias CloudStackLang.Operator.Sub
   alias CloudStackLang.Operator.Exp
+  alias CloudStackLang.Number
 
   defp reduce_to_value({:simple_string, _line, value}, _state) do
-    value
+    s = value
     |> List.to_string
     |> CloudStackLang.String.clear
+
+    {:string, s}
   end
 
   defp reduce_to_value({:interpolate_string, _line, value}, state) do
-    value
+    s = value
     |> List.to_string
     |> CloudStackLang.String.interpolate(state)
     |> CloudStackLang.String.clear
+
+    {:string, s}
   end
 
   defp reduce_to_value({:map, _line, value}, state) do
-    Enum.map(value, fn {:map_arg, {:name, _, key}, expr} -> {key, reduce_to_value(expr, state)} end)
+    m = Enum.map(value, fn {:map_arg, {:name, _, key}, expr} -> {key, reduce_to_value(expr, state)} end)
     |> Map.new
+
+    {:map, m}
   end
 
   defp reduce_to_value({:array, _line, value}, state) do
-    Enum.map(value, fn v -> reduce_to_value(v, state) end)
+    a = Enum.map(value, fn v -> reduce_to_value(v, state) end)
+
+    {:array, a}
   end
 
   defp reduce_to_value({:int, _line, value}, _state) do
-    List.to_integer(value)
+    # TODO add support xxx_xxx_xxx notation
+    {:int, List.to_integer(value)}
   end
 
   defp reduce_to_value({:float, _line, value}, _state) do
-    List.to_float(value)
+    # TODO add support xxx_xxx_xxx notation
+    {:float, List.to_float(value)}
   end
 
   defp reduce_to_value({:hexa, _line, value}, _state) do
-    value
-    |> List.to_string
-    |> String.slice(2..-1)
-    |> Integer.parse(16)
+    Number.from_hexa(value)
   end
 
   defp reduce_to_value({:octal, _line, value}, _state) do
-    List.to_integer(value)
+    Number.from_octal(value)
   end
 
   defp reduce_to_value({:atom, _line, atom_name}, _state) do
     [_ | atom] = atom_name
-    List.to_atom(atom)
+    {:atom, List.to_atom(atom)}
   end
 
   defp reduce_to_value({:build_empty_map, _open_map}, _state) do
-    %{}
+    {:map, %{}}
   end
 
   defp reduce_to_value({:build_map, open_map, assignments}, state) do
     {:open_map, line} = open_map
-    reduce_to_value({:map, line, assignments}, state)
+    m = reduce_to_value({:map, line, assignments}, state)
+    {:map, m}
   end
 
   defp reduce_to_value({:build_empty_array, _open_map}, _state) do
-    []
+    {:array, []}
   end
 
   defp reduce_to_value({:build_array, open_map, assignments}, state) do
     {:open_array, line} = open_map
-    reduce_to_value({:array, line, assignments}, state)
+    a = reduce_to_value({:array, line, assignments}, state)
+    {:array, a}
   end
 
   defp reduce_to_value({:name, line, var_name}, state) do
