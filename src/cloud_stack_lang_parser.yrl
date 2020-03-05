@@ -5,12 +5,13 @@
 
 Nonterminals
   root
-  assignment assignments
+  assignment
   map_arg map_args
   expr
   exprs
   map
   array
+  function_call
 .
 
 Terminals
@@ -43,17 +44,21 @@ Left 400 '*'.
 Left 400 '/'.
 Left 500 '^'.
 
-root -> assignments : '$1'.
+root -> assignment : ['$1'].
+root -> function_call : ['$1'].
+root -> assignment root : lists:append(['$1'], '$2').
+root -> function_call root : lists:append(['$1'], '$2').
 
-assignments -> assignment : '$1'.
-assignments -> assignment assignments : lists:merge('$1', '$2').
 
-assignment -> name '=' expr : [{assign, '$1', '$3'}].
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Assignment
 
-map_args -> map_arg : '$1'.
-map_args -> map_arg map_args : lists:merge('$1', '$2').
+assignment -> name '=' expr : {assign, '$1', '$3'}.
 
-map_arg -> name '=' expr : [{map_arg, '$1', '$3'}].
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Expression
 
 expr -> int : '$1'.
 expr -> atom : '$1'.
@@ -66,6 +71,7 @@ expr -> interpolate_string : '$1'.
 expr -> map : '$1'.
 expr -> array : '$1'.
 expr -> open_parenthesis expr close_parenthesis : {parenthesis, '$2'}.
+expr -> function_call : '$1'.
 
 expr -> expr '+' expr : {add_op, '$1', '$3'}.
 expr -> expr '-' expr : {sub_op, '$1', '$3'}.
@@ -74,14 +80,37 @@ expr -> expr '/' expr : {div_op, '$1', '$3'}.
 expr -> expr '^' expr : {exp_op, '$1', '$3'}.
 
 exprs -> expr : ['$1'].
-exprs -> expr exprs : lists:merge(['$1'], '$2').
+exprs -> expr exprs : lists:append(['$1'], '$2').
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Map
 
 map -> open_map close_map : {build_empty_map, '$1'}.
 map -> open_map map_args close_map : {build_map, '$1', '$2'}.
 
+map_args -> map_arg : '$1'.
+map_args -> map_arg map_args : lists:append('$1', '$2').
+
+map_arg -> name '=' expr : [{map_arg, '$1', '$3'}].
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Array
+
 array -> open_array close_array : {build_empty_array, '$1'}.
 array -> open_array exprs close_array : {build_array, '$1', '$2'}.
 
-%function_call -> open_parenthesis close_parenthesis : {fct_call_empty, '$1'}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function
+
+function_call -> name open_parenthesis close_parenthesis : {fct_call, '$1', []}.
+function_call -> name open_parenthesis exprs close_parenthesis : {fct_call, '$1', '$3'}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Erlang code.

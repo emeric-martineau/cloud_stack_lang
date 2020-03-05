@@ -16,7 +16,8 @@ t = :toto
 // This is a single line comment
 
 string = 'coucou c\'est cool'
-string2 = "coucou"
+string2 = "coucou
+${z}"
 
 aaaa = 2 * 2
 
@@ -35,14 +36,14 @@ map3 = {
 }
 
 array1 = [ ]
-array2 = [ 1 + 1 ]
+array2 = [ 1 + 1 1 + 3]
 array3 = [
   2 + 2
   3 + 3
 ]
 
 a = 0xfa
-b = (1 + (3 +5))
+b = (1 + (3 + 5))
 
 var1 = 3
 map3 = {

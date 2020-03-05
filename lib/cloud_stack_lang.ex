@@ -123,6 +123,10 @@ defmodule CloudStackLang.Parser do
     Exp.reduce(lvalue, rvalue)
   end
 
+  defp reduce_to_value({:eol, _lhs}, _state) do
+    nil
+  end
+
   defp reduce_to_value({:parenthesis, expr}, state) do
     reduce_to_value(expr, state)
   end
@@ -138,6 +142,10 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([], state) do
+    state
+  end
+
+  defp evaluate_tree(_, state) do
     state
   end
 
