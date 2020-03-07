@@ -1,4 +1,81 @@
 defmodule CloudStackLang.Parser do
+  @moduledoc ~S"""
+  This module parse and run code.
+
+  ## Examples
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1")
+    %{a: {:int, 1}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1 + 1")
+    %{a: {:int, 2}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1 - 1")
+    %{a: {:int, 0}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 4 / 2")
+    %{a: {:int, 2}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 7\nb = 4\nresult = a + b * 10 / 2")
+    %{a: {:int, 7}, b: {:int, 4}, result: {:int, 27}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = :toto")
+    %{a: {:atom, :toto}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("/*\nThis is multi line comment\n*/\na = :toto")
+    %{a: {:atom, :toto}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("// This is single line comment\na = :toto")
+    %{a: {:atom, :toto}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1\nb='no interpolate ${a} \\' with single quote'")
+    %{a: {:int, 1}, b: {:string, "no interpolate ${a} ' with single quote"}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1\nb=\"interpolate ${a} \\\" with double quote\"")
+    %{a: {:int, 1}, b: {:string, "interpolate 1 \" with double quote"}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1.3")
+    %{a: {:float, 1.3}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1.3e2")
+    %{a: {:float, 1.3e2}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = -1.3e2")
+    %{a: {:float, -1.3e2}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = -1")
+    %{a: {:int, -1}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = {}")
+    %{a: {:map, %{}}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = { a = 2 }")
+    %{a: {:map, %{'a' => {:int, 2}}}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = { a = 2 b = 3}")
+    %{a: {:map, %{'a' => {:int, 2}, 'b' => {:int, 3}}}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = []")
+    %{a: {:array, []}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = [ 2 ]")
+    %{a: {:array, [ {:int, 2} ]}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = [ 2 3 ]")
+    %{a: {:array, [ {:int, 2}, {:int, 3} ]}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 0xfa")
+    %{a: {:int, 250}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 0xFA")
+    %{a: {:int, 250}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 0o531")
+    %{a: {:int, 345}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = (1 * (3 + 5))")
+    %{a: {:int, 8}}
+  """
   alias CloudStackLang.Operator.Add
   alias CloudStackLang.Operator.Div
   alias CloudStackLang.Operator.Mul
@@ -65,8 +142,7 @@ defmodule CloudStackLang.Parser do
 
   defp reduce_to_value({:build_map, open_map, assignments}, state) do
     {:open_map, line} = open_map
-    m = reduce_to_value({:map, line, assignments}, state)
-    {:map, m}
+    reduce_to_value({:map, line, assignments}, state)
   end
 
   defp reduce_to_value({:build_empty_array, _open_map}, _state) do
@@ -75,8 +151,7 @@ defmodule CloudStackLang.Parser do
 
   defp reduce_to_value({:build_array, open_map, assignments}, state) do
     {:open_array, line} = open_map
-    a = reduce_to_value({:array, line, assignments}, state)
-    {:array, a}
+    reduce_to_value({:array, line, assignments}, state)
   end
 
   defp reduce_to_value({:name, line, var_name}, state) do
