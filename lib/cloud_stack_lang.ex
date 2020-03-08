@@ -75,6 +75,18 @@ defmodule CloudStackLang.Parser do
 
     iex> CloudStackLang.Parser.parse_and_eval("a = (1 * (3 + 5))")
     %{a: {:int, 8}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = 1}\nb = a[:a]")
+    %{a: {:map, %{ :a => {:int, 1}}}, b: {:int, 1}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = { :b = 2 } }\nb = a[:a][:b]")
+    %{a:
+      {:map, %{
+        :a => {:map, %{
+          :b => {:int, 2}
+        }}
+      }},
+    b: {:int, 2}}
   """
   alias CloudStackLang.Operator.Add
   alias CloudStackLang.Operator.Div
@@ -82,6 +94,7 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Operator.Sub
   alias CloudStackLang.Operator.Exp
   alias CloudStackLang.Number
+  alias CloudStackLang.Map, as: MMap
 
   defp reduce_to_value({:simple_string, _line, value}, _state) do
     s = value
@@ -102,11 +115,11 @@ defmodule CloudStackLang.Parser do
 
   defp reduce_to_value({:map, _line, value}, state) do
     m = Enum.map(value,
-      fn {:map_arg, key, expr} ->
-        {_, k} = reduce_to_value(key, state)
-        {k, reduce_to_value(expr, state)}
-      end)
-    |> Map.new
+          fn {:map_arg, key, expr} ->
+            {_, k} = reduce_to_value(key, state)
+            {k, reduce_to_value(expr, state)}
+          end)
+        |> Map.new
 
     {:map, m}
   end
@@ -200,6 +213,20 @@ defmodule CloudStackLang.Parser do
     rvalue = reduce_to_value(rhs, state)
 
     Exp.reduce(lvalue, rvalue)
+  end
+
+  defp reduce_to_value({:map_get, var_name, access_key_list}, state) do
+    # Get variable value
+    local_state = reduce_to_value(var_name, state) # TODO what's happen if not found
+
+    # Parse all arguments
+    key_list = Enum.map(access_key_list, fn v ->
+      {_, line, _} = v
+      {type, value} = reduce_to_value(v, state)
+      {type, line, value}
+    end)
+
+    MMap.reduce(key_list, local_state)
   end
 
   defp reduce_to_value({:eol, _lhs}, _state) do

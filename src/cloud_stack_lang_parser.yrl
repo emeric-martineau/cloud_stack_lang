@@ -6,10 +6,8 @@
 Nonterminals
   root
   assignment
-  map_arg map_args
-  expr
-  exprs
-  map
+  expr exprs
+  map map_arg map_args map_access
   array
   function_call
 .
@@ -54,6 +52,7 @@ root -> function_call root : lists:append(['$1'], '$2').
 % Assignment
 
 assignment -> name '=' expr : {assign, '$1', '$3'}.
+%assignment -> name open_array close_array '=' expr: {map_push, '$1', $5}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -78,6 +77,7 @@ expr -> expr '-' expr : {sub_op, '$1', '$3'}.
 expr -> expr '*' expr : {mul_op, '$1', '$3'}.
 expr -> expr '/' expr : {div_op, '$1', '$3'}.
 expr -> expr '^' expr : {exp_op, '$1', '$3'}.
+expr -> name map_access : {map_get, '$1', '$2'}.
 
 exprs -> expr : ['$1'].
 exprs -> expr exprs : lists:append(['$1'], '$2').
@@ -96,6 +96,10 @@ map_args -> map_arg map_args : lists:append('$1', '$2').
 map_arg -> atom '=' expr : [{map_arg, '$1', '$3'}].
 map_arg -> simple_string '=' expr : [{map_arg, '$1', '$3'}].
 map_arg -> interpolate_string '=' expr : [{map_arg, '$1', '$3'}].
+
+% Map access
+map_access -> open_array expr close_array : ['$2'].
+map_access -> map_access open_array expr close_array : lists:append('$1', ['$3']).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
