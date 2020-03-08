@@ -49,11 +49,11 @@ defmodule CloudStackLang.Parser do
     iex> CloudStackLang.Parser.parse_and_eval("a = {}")
     %{a: {:map, %{}}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = { a = 2 }")
-    %{a: {:map, %{'a' => {:int, 2}}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = 2 }")
+    %{a: {:map, %{:a => {:int, 2}}}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = { a = 2 b = 3}")
-    %{a: {:map, %{'a' => {:int, 2}, 'b' => {:int, 3}}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = 2 'b' = 3}")
+    %{a: {:map, %{:a => {:int, 2}, "b" => {:int, 3}}}}
 
     iex> CloudStackLang.Parser.parse_and_eval("a = []")
     %{a: {:array, []}}
@@ -101,7 +101,11 @@ defmodule CloudStackLang.Parser do
   end
 
   defp reduce_to_value({:map, _line, value}, state) do
-    m = Enum.map(value, fn {:map_arg, {:name, _, key}, expr} -> {key, reduce_to_value(expr, state)} end)
+    m = Enum.map(value,
+      fn {:map_arg, key, expr} ->
+        {_, k} = reduce_to_value(key, state)
+        {k, reduce_to_value(expr, state)}
+      end)
     |> Map.new
 
     {:map, m}

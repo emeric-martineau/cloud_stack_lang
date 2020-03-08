@@ -93,7 +93,9 @@ map -> open_map map_args close_map : {build_map, '$1', '$2'}.
 map_args -> map_arg : '$1'.
 map_args -> map_arg map_args : lists:append('$1', '$2').
 
-map_arg -> name '=' expr : [{map_arg, '$1', '$3'}].
+map_arg -> atom '=' expr : [{map_arg, '$1', '$3'}].
+map_arg -> simple_string '=' expr : [{map_arg, '$1', '$3'}].
+map_arg -> interpolate_string '=' expr : [{map_arg, '$1', '$3'}].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
