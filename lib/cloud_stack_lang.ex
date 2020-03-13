@@ -223,12 +223,31 @@ defmodule CloudStackLang.Parser do
     check_map_variable(local_state, access_key_list, state)
   end
 
-  defp reduce_to_value({:eol, _lhs}, _state) do
-    nil
-  end
-
   defp reduce_to_value({:parenthesis, expr}, state) do
     reduce_to_value(expr, state)
+  end
+
+  defp reduce_to_value({:fct_call, {:name, line, fct_name}, args}, state) do
+    news_args = Enum.map(args, fn a -> reduce_to_value(a, state) end)
+
+    error_count = Enum.filter(news_args, fn
+      {:error, _line, _msg} -> true
+      _ -> false
+    end)
+
+    case error_count do
+      [] -> call_function(List.to_string(fct_name), news_args, line)
+      [ error | _tail ] -> error
+    end
+  end
+
+  defp call_function(fct_name, news_args, line) do
+    return_value = FctBase.run(fct_name, news_args)
+
+    case return_value do
+      {:error, msg} -> {:error, line, msg}
+      _ -> return_value
+    end
   end
 
   defp check_map_variable({:error, line, msg}, _access_key_list, _state) do
@@ -246,15 +265,6 @@ defmodule CloudStackLang.Parser do
     MMap.reduce(key_list, local_state)
   end
 
-  defp call_function(tail, state, fct_name, news_args, line) do
-    return_value = FctBase.run(fct_name, news_args)
-
-    case return_value do
-      {:error, msg} -> {:error, line, msg}
-      _ -> evaluate_tree(tail, state)
-    end
-  end
-
   defp evaluate_tree([{:assign, {:name, _line, variable_name}, variable_expr_value} | tail], state) do
     value = reduce_to_value(variable_expr_value, state)
     key = List.to_atom(variable_name)
@@ -266,16 +276,11 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([{:fct_call, {:name, line, fct_name}, args} | tail], state) do
-    news_args = Enum.map(args, fn a -> reduce_to_value(a, state) end)
+    return_value = reduce_to_value({:fct_call, {:name, line, fct_name}, args}, state)
 
-    error_count = Enum.filter(news_args, fn
-      {:error, _line, _msg} -> 1
-      _ -> 0
-    end)
-
-    case error_count do
-      [] -> call_function(tail, state, List.to_string(fct_name), news_args, line)
-      [ error | _tail ] -> error
+    case return_value do
+      {:error, line, msg} -> {:error, line, msg}
+      _ -> evaluate_tree(tail, state)
     end
   end
 
