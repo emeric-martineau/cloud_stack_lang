@@ -292,13 +292,27 @@ defmodule CloudStackLang.Parser do
     state
   end
 
+  # TODO when main is real application with debug parameter, process_tree must be private
+  def process_tree({:ok, tree}) do
+    evaluate_tree(tree, %{})
+  end
+
+  # TODO when main is real application with debug parameter, remove this
   def process_tree(tree) do
     evaluate_tree(tree, %{})
   end
 
+  defp process_parse({:error, result}) do
+    {:error, result}
+  end
+
+  defp process_parse({:ok, tokens, _line}) do
+    :cloud_stack_lang_parser.parse(tokens)
+    |> process_tree
+  end
+
   def parse_and_eval(string) do
-    {:ok, tokens, _line} = :cloud_stack_lang_lexer.string(String.to_charlist(string))
-    {:ok, tree} = :cloud_stack_lang_parser.parse(tokens)
-    process_tree(tree)
+    :cloud_stack_lang_lexer.string(String.to_charlist(string))
+    |> process_parse
   end
 end
