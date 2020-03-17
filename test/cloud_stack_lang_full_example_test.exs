@@ -173,6 +173,46 @@ defmodule CloudStackLang.Parser.FullTest do
     assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
   end
 
+  test "addition type error" do
+    text = ~S"""
+    var1 = 1 + "hello"
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "'+' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+  end
+
+  test "substitution type error" do
+    text = ~S"""
+    var1 = 1 - "hello"
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "'-' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+  end
+
+  test "multiplication type error" do
+    text = ~S"""
+    var1 = 1 * "hello"
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "'*' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+  end
+
+  test "division type error" do
+    text = ~S"""
+    var1 = 1 / "hello"
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "'/' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+  end
+
+  test "exponent type error" do
+    text = ~S"""
+    var1 = 1 ^ "hello"
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "'^' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+  end
+
   # TODO test error
   # Function not found
   # Function return error
