@@ -236,7 +236,7 @@ defmodule CloudStackLang.Parser do
 
   defp reduce_to_value({:map_get, var_name, access_key_list}, state) do
     # Get variable value
-    local_state = reduce_to_value(var_name, state) # TODO what's happen if not found
+    local_state = reduce_to_value(var_name, state)
 
     check_map_variable(local_state, access_key_list, state)
   end
@@ -270,11 +270,15 @@ defmodule CloudStackLang.Parser do
     # Parse all arguments
     key_list = Enum.map(access_key_list, fn v ->
       {_, line, _} = v
-      {type, value} = reduce_to_value(v, state)
-      {type, line, value}
+      case reduce_to_value(v, state) do
+        {:error, line, msg} -> {:error, line, msg}
+        {type, value} -> {type, line, value}
+      end
     end)
 
-    MMap.reduce(key_list, local_state)
+    fct_reduce = fn data -> data end
+
+    call_if_no_error(key_list, fct_reduce, &MMap.reduce/2, [key_list, local_state])
   end
 
   defp evaluate_tree([{:assign, {:name, _line, variable_name}, variable_expr_value} | tail], state) do

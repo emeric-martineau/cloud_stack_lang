@@ -213,6 +213,28 @@ defmodule CloudStackLang.Parser.FullTest do
     assert parse_and_eval(text) == {:error, 1, "'^' operator not supported for {:int, 1}, {:string, \"hello\"}"}
   end
 
+  # TODO allow get on array
+  test "get value map error" do
+    text = ~S"""
+    var0 = "hello"
+    var1 = var0[:a]
+    """
+
+    assert parse_and_eval(text) == {:error, 2, "Trying get a value with key 'a' on non-map value"}
+  end
+
+  test "get value map with error in key" do
+    text = ~S"""
+    var0 = {
+    "eee" = "ererere"
+    }
+
+    var1 = var0[e]
+    """
+
+    assert parse_and_eval(text) == {:error, 5, "Variable name 'e' is not declared"}
+  end
+
   # TODO test error
   # Function not found
   # Function return error
