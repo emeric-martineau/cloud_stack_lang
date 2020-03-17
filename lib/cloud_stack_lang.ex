@@ -97,6 +97,34 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Map, as: MMap
   alias CloudStackLang.Functions.Base, as: FctBase
 
+  defp compute_operation(lhs, rhs, state, function) do
+    lvalue = reduce_to_value(lhs, state)
+    rvalue = reduce_to_value(rhs, state)
+
+    ret = function.(lvalue, rvalue)
+
+    case ret do
+      {:error, msg} ->
+        {_, line, _} = lhs
+        {:error, line, msg}
+      r -> r
+    end
+  end
+
+  defp call_if_no_error(items, fct_reduce, fct_to_call, args) do
+    elems = Enum.map(items, fct_reduce)
+
+    errors = Enum.filter(elems, fn
+      {:error, _line, _msg} -> true
+      _ -> false
+    end)
+
+    case errors do
+      [] -> apply(fct_to_call, args)
+      [ error | _tail ] -> error
+    end
+  end
+
   defp reduce_to_value({:simple_string, _line, value}, _state) do
     s = value
     |> List.to_string
@@ -115,20 +143,25 @@ defmodule CloudStackLang.Parser do
   end
 
   defp reduce_to_value({:map, _line, value}, state) do
-    m = Enum.map(value,
-          fn {:map_arg, key, expr} ->
-            {_, k} = reduce_to_value(key, state)
-            {k, reduce_to_value(expr, state)}
-          end)
-        |> Map.new
+    list_of_key_value_compute = Enum.map(value,
+      fn {:map_arg, key, expr} ->
+        {_, k} = reduce_to_value(key, state)
+        {k, reduce_to_value(expr, state)}
+      end)
 
-    {:map, m}
+    fct = fn data -> {:map, Map.new(data)} end
+    fct_reduce = fn {_, msg} -> msg end
+
+    call_if_no_error(list_of_key_value_compute, fct_reduce, fct, [list_of_key_value_compute])
   end
 
   defp reduce_to_value({:array, _line, value}, state) do
-    a = Enum.map(value, fn v -> reduce_to_value(v, state) end)
+    list_of_value = Enum.map(value, fn v -> reduce_to_value(v, state) end)
 
-    {:array, a}
+    fct = fn data -> {:array, data} end
+    fct_reduce = fn msg -> msg end
+
+    call_if_no_error(list_of_value, fct_reduce, fct, [list_of_value])
   end
 
   defp reduce_to_value({:int, _line, value}, _state) do
@@ -182,38 +215,23 @@ defmodule CloudStackLang.Parser do
   end
 
   defp reduce_to_value({:add_op, lhs, rhs}, state) do
-    lvalue = reduce_to_value(lhs, state)
-    rvalue = reduce_to_value(rhs, state)
-
-    Add.reduce(lvalue, rvalue)
+    compute_operation(lhs, rhs, state, &Add.reduce/2)
   end
 
   defp reduce_to_value({:sub_op, lhs, rhs}, state) do
-    lvalue = reduce_to_value(lhs, state)
-    rvalue = reduce_to_value(rhs, state)
-
-    Sub.reduce(lvalue, rvalue)
+    compute_operation(lhs, rhs, state, &Sub.reduce/2)
   end
 
   defp reduce_to_value({:mul_op, lhs, rhs}, state) do
-    lvalue = reduce_to_value(lhs, state)
-    rvalue = reduce_to_value(rhs, state)
-
-    Mul.reduce(lvalue, rvalue)
+    compute_operation(lhs, rhs, state, &Mul.reduce/2)
   end
 
   defp reduce_to_value({:div_op, lhs, rhs}, state) do
-    lvalue = reduce_to_value(lhs, state)
-    rvalue = reduce_to_value(rhs, state)
-
-    Div.reduce(lvalue, rvalue)
+    compute_operation(lhs, rhs, state, &Div.reduce/2)
   end
 
   defp reduce_to_value({:exp_op, lhs, rhs}, state) do
-    lvalue = reduce_to_value(lhs, state)
-    rvalue = reduce_to_value(rhs, state)
-
-    Exp.reduce(lvalue, rvalue)
+    compute_operation(lhs, rhs, state, &Exp.reduce/2)
   end
 
   defp reduce_to_value({:map_get, var_name, access_key_list}, state) do
@@ -230,15 +248,9 @@ defmodule CloudStackLang.Parser do
   defp reduce_to_value({:fct_call, {:name, line, fct_name}, args}, state) do
     news_args = Enum.map(args, fn a -> reduce_to_value(a, state) end)
 
-    error_count = Enum.filter(news_args, fn
-      {:error, _line, _msg} -> true
-      _ -> false
-    end)
+    fct_reduce = fn data -> data end
 
-    case error_count do
-      [] -> call_function(List.to_string(fct_name), news_args, line)
-      [ error | _tail ] -> error
-    end
+    call_if_no_error(news_args, fct_reduce, &call_function/3, [List.to_string(fct_name), news_args, line])
   end
 
   defp call_function(fct_name, news_args, line) do

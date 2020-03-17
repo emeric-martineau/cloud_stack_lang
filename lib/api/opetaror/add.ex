@@ -17,10 +17,10 @@ defmodule CloudStackLang.Operator.Add do
     {:float, 2.0}
 
     iex> CloudStackLang.Operator.Add.reduce({:error, 1, "hello"}, {:int, 1})
-    {:error, "hello"}
+    {:error, 1, "hello"}
 
     iex> CloudStackLang.Operator.Add.reduce({:int, 1}, {:error, 1, "hello"})
-    {:error, "hello"}
+    {:error, 1, "hello"}
 
     iex> CloudStackLang.Operator.Add.reduce({:int, 1}, {:string, "coucou"})
     {:error, "'+' operator not supported for {:int, 1}, {:string, \\"coucou\\"}"}
@@ -34,12 +34,12 @@ defmodule CloudStackLang.Operator.Add do
     iex> CloudStackLang.Operator.Add.reduce({:string, "coucou"}, {:float, 1})
     {:error, "'+' operator not supported for {:string, \\"coucou\\"}, {:float, 1}"}
   """
-  def reduce({:error, _line, msg}, _rvalue) do
-    {:error, msg}
+  def reduce({:error, line, msg}, _rvalue) do
+    {:error, line, msg}
   end
 
-  def reduce(_lvalue, {:error, _line, msg}) do
-    {:error, msg}
+  def reduce(_lvalue, {:error, line, msg}) do
+    {:error, line, msg}
   end
 
   def reduce({:int, lvalue}, {:int, rvalue}) do

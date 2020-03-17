@@ -107,8 +107,73 @@ defmodule CloudStackLang.Parser.FullTest do
     assert parse_and_eval(text) == result
   end
 
+  test "variable not found for addition" do
+    text = ~S"""
+    var1 = 1 + var0
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+  end
+
+  test "variable not found for substitution" do
+    text = ~S"""
+    var1 = 1 - var0
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+  end
+
+  test "variable not found for multiplication" do
+    text = ~S"""
+    var1 = 1 * var0
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+  end
+
+  test "variable not found for division" do
+    text = ~S"""
+    var1 = 1 / var0
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+  end
+
+  test "variable not found for exponent" do
+    text = ~S"""
+    var1 = 1 ^ var0
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+  end
+
+  test "variable not found in map" do
+    text = ~S"""
+    var1 = {
+      :a = var0
+    }
+    """
+
+    assert parse_and_eval(text) == {:error, 2, "Variable name 'var0' is not declared"}
+  end
+
+  test "variable not found in array" do
+    text = ~S"""
+    var1 = [ var0 ]
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+  end
+
+  test "variable not found in function" do
+    text = ~S"""
+    base64_encode(var0)
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+  end
+
   # TODO test error
-  # Variable not found
   # Function not found
   # Function return error
 end

@@ -14,17 +14,17 @@ defmodule CloudStackLang.Operator.Exp do
     {:float, 19.80424502306346}
 
     iex> CloudStackLang.Operator.Exp.reduce({:error, 1, "hello"}, 1)
-    {:error, "hello"}
+    {:error, 1, "hello"}
 
     iex> CloudStackLang.Operator.Exp.reduce(1, {:error, 1, "hello"})
-    {:error, "hello"}
+    {:error, 1, "hello"}
   """
-  def reduce({:error, _line, msg}, _rvalue) do
-    {:error, msg}
+  def reduce({:error, line, msg}, _rvalue) do
+    {:error, line, msg}
   end
 
-  def reduce(_lvalue, {:error, _line, msg}) do
-    {:error, msg}
+  def reduce(_lvalue, {:error, line, msg}) do
+    {:error, line, msg}
   end
 
   def reduce({:int, lvalue}, {:int, rvalue}) do

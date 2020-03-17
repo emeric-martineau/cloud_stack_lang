@@ -17,10 +17,10 @@ defmodule CloudStackLang.Operator.Div do
     {:float, 4.0}
 
     iex> CloudStackLang.Operator.Div.reduce({:error, 1, "hello"}, 1)
-    {:error, "hello"}
+    {:error, 1, "hello"}
 
     iex> CloudStackLang.Operator.Div.reduce({:int, 1}, {:error, 1, "hello"})
-    {:error, "hello"}
+    {:error, 1, "hello"}
 
     iex> CloudStackLang.Operator.Div.reduce({:int, 3}, {:float, 2.0})
     {:float, 1.5}
@@ -41,12 +41,12 @@ defmodule CloudStackLang.Operator.Div do
     {:float, lvalue / rvalue}
   end
 
-  def reduce({:error, _line, msg}, _rvalue) do
-    {:error, msg}
+  def reduce({:error, line, msg}, _rvalue) do
+    {:error, line, msg}
   end
 
-  def reduce(_lvalue, {:error, _line, msg}) do
-    {:error, msg}
+  def reduce(_lvalue, {:error, line, msg}) do
+    {:error, line, msg}
   end
 
   def reduce(lvalue, rvalue) do
