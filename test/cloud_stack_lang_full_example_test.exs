@@ -235,7 +235,19 @@ defmodule CloudStackLang.Parser.FullTest do
     assert parse_and_eval(text) == {:error, 5, "Variable name 'e' is not declared"}
   end
 
-  # TODO test error
-  # Function not found
-  # Function return error
+  test "call function not found" do
+    text = ~S"""
+    function_not_found()
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "Function 'function_not_found' not found"}
+  end
+
+  test "call function not found in assignation" do
+    text = ~S"""
+    var0 = function_not_found()
+    """
+
+    assert parse_and_eval(text) == {:error, 1, "Function 'function_not_found' not found"}
+  end
 end

@@ -28,12 +28,12 @@ defmodule CloudStackLang.Functions.Base do
   def run(function_name, args) do
     fct_entry = @functions[String.to_atom(function_name)]
 
-    {_args_type, return_type, _fct_ptr} = fct_entry
-
     call(function_name, args, fct_entry)
 
     case call(function_name, args, fct_entry) do
-      {:ok, value} -> {return_type, value}
+      {:ok, value} ->
+        {_args_type, return_type, _fct_ptr} = fct_entry
+        {return_type, value}
       v -> v
     end
   end
