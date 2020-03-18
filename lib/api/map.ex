@@ -21,6 +21,16 @@ defmodule CloudStackLang.Map do
     reduce(keys, state[key])
   end
 
+  def reduce(access_keys, {:array, state}) do
+    [first_key | keys] = access_keys
+    {_type, line, key} = first_key
+
+    case key < length(state) do
+      true -> reduce(keys, Enum.at(state, key))
+      false -> {:error, line, "Index '#{key}' is out of range (#{length(state)} items in array)"}
+    end
+  end
+
   def reduce(access_keys, nil) do
     [first_key | _keys] = access_keys
     {_type, line, key} = first_key

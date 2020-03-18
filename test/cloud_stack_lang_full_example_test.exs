@@ -56,6 +56,11 @@ defmodule CloudStackLang.Parser.FullTest do
       1
       var13
     ]
+    var24_1 = var24[0]
+    var24_2 = [
+      var24
+    ]
+    var24_3 = var24_2[0][1]
 
     // Function
     base64_encode("1")
@@ -99,6 +104,9 @@ defmodule CloudStackLang.Parser.FullTest do
       }},
       var23: {:array, []},
       var24: {:array, [ {:int, 1}, {:float, 1.3}]},
+      var24_1: {:int, 1},
+      var24_2: {:array, [array: [int: 1, float: 1.3]]},
+      var24_3: {:float, 1.3},
       var25: {:string, "MQ=="},
       var26: {:int, 4660},
       var27: {:int, 668},
@@ -213,7 +221,6 @@ defmodule CloudStackLang.Parser.FullTest do
     assert parse_and_eval(text) == {:error, 1, "'^' operator not supported for {:int, 1}, {:string, \"hello\"}"}
   end
 
-  # TODO allow get on array
   test "get value map error" do
     text = ~S"""
     var0 = "hello"
@@ -249,5 +256,14 @@ defmodule CloudStackLang.Parser.FullTest do
     """
 
     assert parse_and_eval(text) == {:error, 1, "Function 'function_not_found' not found"}
+  end
+
+  test "array out of bound" do
+    text = ~S"""
+    var0 = [ 1 2 3 ]
+    var1 = var0[5]
+    """
+
+    assert parse_and_eval(text) == {:error, 2, "Index '5' is out of range (3 items in array)"}
   end
 end
