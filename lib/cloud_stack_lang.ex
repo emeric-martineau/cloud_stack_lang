@@ -139,7 +139,10 @@ defmodule CloudStackLang.Parser do
     |> CloudStackLang.String.interpolate(state)
     |> CloudStackLang.String.clear
 
-    {:string, s}
+    case s do
+      {:error, line, msg} -> {:error, line, msg}
+      v -> {:string, v}
+    end
   end
 
   defp reduce_to_value({:map, _line, value}, state) do

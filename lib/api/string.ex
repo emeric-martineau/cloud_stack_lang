@@ -25,6 +25,10 @@ defmodule CloudStackLang.String do
       iex> CloudStackLang.String.clear("'hello\\\"world'")
       "hello\"world"
   """
+  def clear({:error, line, msg}) do
+    {:error, line, msg}
+  end
+
   def clear(value) do
     value
     |> String.slice(1..String.length(value) - 2)
@@ -56,21 +60,50 @@ defmodule CloudStackLang.String do
       "'<map>'"
 
       iex> CloudStackLang.String.interpolate("'${var1}'", %{:e => 3})
-      "'null'"
+      {:error, 1, "Variable name 'var1' is not declared"}
+
+      iex> CloudStackLang.String.interpolate("'${var1[1][0]}'", %{:var1 => {:array, [{:int, 1}, {:array, [ {:int, 3}]}]}})
+      "'3'"
   """
   def interpolate(value, state) do
-    # First replace ${xxx} at start of line
-    s1 = Regex.replace(~R/^\$\{([^}]*)?\}/, value, fn _, _, key -> get(state, key) end)
-    # then replace all ${xxx}
-    Regex.replace(~R/(\$\{([^}]*)?\})/, s1, fn _, _, key -> get(state, key) end)
+    replace_var([{0, 0}], value, state)
   end
 
-  # TODO support ${xxx[1]} for array and ${xxx["key"]} for map
-  # TODO raise error if variable not found
+  defp replace_var([{0, 0}], string, state) do
+    new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, string, [return: :index, capture: :first])
+
+    replace_var(new_pos, string, state)
+  end
+
+  defp replace_var([{start, len}], string, state) do
+    start_string = String.slice(string, 0, start)
+    # Skip ${ }
+    key = String.slice(string, start + 2, len - 3)
+
+    value_to_replace = get(state, key)
+
+    case value_to_replace do
+      {:error, line, msg} -> {:error, line, msg}
+      v ->
+        end_string = String.slice(string, start + len, String.length(string))
+
+        new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, end_string, [return: :index, capture: :first])
+
+        start_string <> v <> replace_var(new_pos, end_string, state)
+    end
+  end
+
+  defp replace_var(nil, string, _state) do
+    string
+  end
 
   defp get(state, key) do
-    k = String.to_atom(key)
-    unwrap(state[k])
+    value = CloudStackLang.Parser.parse_and_eval("result=" <> key, false, state)
+
+    case value do
+      {:error, line, msg} -> {:error, line, msg}
+      v -> unwrap(v[:result])
+    end
   end
 
   defp unwrap({:string, value}) do
@@ -91,10 +124,6 @@ defmodule CloudStackLang.String do
 
   defp unwrap({:float, value}) do
     Float.to_string(value)
-  end
-
-  defp unwrap(nil) do
-    "null"
   end
 
   defp unwrap(value) do
