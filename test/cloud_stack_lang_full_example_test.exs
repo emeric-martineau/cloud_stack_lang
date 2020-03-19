@@ -8,131 +8,131 @@ defmodule CloudStackLang.Parser.FullTest do
      * This is a full example
      */
     // Interger
-    var0 = -1
-    var1 = 1
-    var2 = var1 + 1
-    var3 = 1 + 1 *2
-    var4 = 4 / 2 + 2
-    var5 = 4 / (2 + 2)
-    var6 = 4 - 2
+    int0 = -1
+    int1 = 1
+    int2 = int1 + 1
+    int3 = 1 + 1 *2
+    int4 = 4 / 2 + 2
+    int5 = 4 / (2 + 2)
+    int6 = 4 - 2
 
-    var7 = var1 + var2 + var3 + var5 + var4 * 10 / 2
+    int7 = int1 + int2 + int3 + int5 + int4 * 10 / 2
 
-    var8 = 10 + 6 / 3 * 20 / 4
+    int8 = 10 + 6 / 3 * 20 / 4
 
-    var8_1 = 1_0_00
+    int9 = 1_0_00
 
     // Atom
-    var9 = :toto
+    atom1 = :toto
 
     // String
-    var10 = 'coucou c\'est cool'
-    var11 = "coucou
-        ${var1}"
-    var12 = "\n\r\t\s"
-    var12_1 = 1 + "hello"
-    var12_2 = "hello" + 1
-    var12_3 = 1.0 + "hello"
-    var12_4 = "hello" + 1.0
-    var12_5 = "hello" + " wolrd!"
+    string1 = 'coucou c\'est cool'
+    string2 = "coucou
+        ${int1}"
+    string3 = "\n\r\t\s"
+    string4 = 1 + "hello"
+    string5 = "hello" + 1
+    string6 = 1.0 + "hello"
+    string7 = "hello" + 1.0
+    string8 = "hello" + " wolrd!"
 
     // Float
-    var13 = 1.3
+    float1 = 1.3
 
-    var14 = var13 * 2
-    var15 = 2 * var13
-    var16 = 2.6 * 5.67
-    var17 = 1 + 1.3
-    var18 = 1.3 + 1
-    var19 = 2.6 / 2
-    var20 = 1.3 ^ 2
+    float2 = float1 * 2
+    float3 = 2 * float1
+    float4 = 2.6 * 5.67
+    float5 = 1 + 1.3
+    float6 = 1.3 + 1
+    float7 = 2.6 / 2
+    float8 = 1.3 ^ 2
 
-    var20_1 = 1.2_34_5
-    var20_2 = 1.2_34_5e1_2
+    float9 = 1.2_34_5
+    float10 = 1.2_34_5e1_2
 
     // Map
-    var21 = {}
-    var22 = {
+    map1 = {}
+    map2 = {
       :a = "hello"
       "key1" = 'value'
-      "key2" = var13
+      "key2" = float1
       'key3' = {
         "other_map" = "cool"
       }
     }
-    var22_2 = { :a = 1 } + { :b = 2 :c = 3 }
+    map3 = { :a = 1 } + { :b = 2 :c = 3 }
 
     // Array
-    var23 = []
-    var24 = [
+    array1 = []
+    array2 = [
       1
-      var13
+      float1
     ]
-    var24_1 = var24[0]
-    var24_2 = [
-      var24
+    array3 = array2[0]
+    array4 = [
+      array2
     ]
-    var24_3 = var24_2[0][1]
-    var24_4 = [ 1 ] + [ 2 3 ]
+    array5 = array4[0][1]
+    array6 = [ 1 ] + [ 2 3 ]
 
     // Function
     base64_encode("1")
-    var25 = base64_encode("1")
+    function1 = base64_encode("1")
 
     // Hexa
-    var26 = 0x1234
+    hexa1 = 0x1234
 
     // Octal
-    var27 = 0o1234
+    octal1 = 0o1234
     """
 
     result = %{
-      var0: {:int, -1},
-      var1: {:int, 1},
-      var2: {:int, 2},
-      var3: {:int, 3},
-      var4: {:int, 4},
-      var5: {:int, 1},
-      var6: {:int, 2},
-      var7: {:int, 27},
-      var8: {:int, 20},
-      var8_1: {:int, 1000},
-      var9: {:atom, :toto},
-      var10: {:string, "coucou c'est cool"},
-      var11: {:string, "coucou\n    1"},
-      var12: {:string, "\n\r\t\s"},
-      var12_1: {:string, "1hello"},
-      var12_2: {:string, "hello1"},
-      var12_3: {:string, "1.0hello"},
-      var12_4: {:string, "hello1.0"},
-      var12_5: {:string, "hello wolrd!"},
-      var13: {:float, 1.3},
-      var14: {:float, 2.6},
-      var15: {:float, 2.6},
-      var16: {:float, 14.742},
-      var17: {:float, 2.3},
-      var18: {:float, 2.3},
-      var19: {:float, 1.3},
-      var20: {:float, 1.6900000000000002},
-      var20_1: {:float, 1.2345},
-      var20_2: {:float, 1.2345e12},
-      var21: {:map, %{}},
-      var22: {:map, %{
+      int0: {:int, -1},
+      int1: {:int, 1},
+      int2: {:int, 2},
+      int3: {:int, 3},
+      int4: {:int, 4},
+      int5: {:int, 1},
+      int6: {:int, 2},
+      int7: {:int, 27},
+      int8: {:int, 20},
+      int9: {:int, 1000},
+      atom1: {:atom, :toto},
+      string1: {:string, "coucou c'est cool"},
+      string2: {:string, "coucou\n    1"},
+      string3: {:string, "\n\r\t\s"},
+      string4: {:string, "1hello"},
+      string5: {:string, "hello1"},
+      string6: {:string, "1.0hello"},
+      string7: {:string, "hello1.0"},
+      string8: {:string, "hello wolrd!"},
+      float1: {:float, 1.3},
+      float2: {:float, 2.6},
+      float3: {:float, 2.6},
+      float4: {:float, 14.742},
+      float5: {:float, 2.3},
+      float6: {:float, 2.3},
+      float7: {:float, 1.3},
+      float8: {:float, 1.6900000000000002},
+      float9: {:float, 1.2345},
+      float10: {:float, 1.2345e12},
+      map1: {:map, %{}},
+      map2: {:map, %{
               :a => {:string, "hello"},
               "key1" => {:string, "value"},
               "key2" => {:float, 1.3},
               "key3" => {:map, %{"other_map" => {:string, "cool"}}}
       }},
-      var22_2: {:map, %{a: {:int, 1}, b: {:int, 2}, c: {:int, 3}}},
-      var23: {:array, []},
-      var24: {:array, [ {:int, 1}, {:float, 1.3}]},
-      var24_1: {:int, 1},
-      var24_2: {:array, [array: [int: 1, float: 1.3]]},
-      var24_3: {:float, 1.3},
-      var24_4: {:array, [int: 1, int: 2, int: 3]},
-      var25: {:string, "MQ=="},
-      var26: {:int, 4660},
-      var27: {:int, 668},
+      map3: {:map, %{a: {:int, 1}, b: {:int, 2}, c: {:int, 3}}},
+      array1: {:array, []},
+      array2: {:array, [ {:int, 1}, {:float, 1.3}]},
+      array3: {:int, 1},
+      array4: {:array, [array: [int: 1, float: 1.3]]},
+      array5: {:float, 1.3},
+      array6: {:array, [int: 1, int: 2, int: 3]},
+      function1: {:string, "MQ=="},
+      hexa1: {:int, 4660},
+      octal1: {:int, 668},
     }
 
     assert parse_and_eval(text, false, %{}) == result
