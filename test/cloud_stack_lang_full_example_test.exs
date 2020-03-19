@@ -30,6 +30,11 @@ defmodule CloudStackLang.Parser.FullTest do
     var11 = "coucou
         ${var1}"
     var12 = "\n\r\t\s"
+    var12_1 = 1 + "hello"
+    var12_2 = "hello" + 1
+    var12_3 = 1.0 + "hello"
+    var12_4 = "hello" + 1.0
+    var12_5 = "hello" + " wolrd!"
 
     // Float
     var13 = 1.3
@@ -55,6 +60,7 @@ defmodule CloudStackLang.Parser.FullTest do
         "other_map" = "cool"
       }
     }
+    var22_2 = { :a = 1 } + { :b = 2 :c = 3 }
 
     // Array
     var23 = []
@@ -67,6 +73,7 @@ defmodule CloudStackLang.Parser.FullTest do
       var24
     ]
     var24_3 = var24_2[0][1]
+    var24_4 = [ 1 ] + [ 2 3 ]
 
     // Function
     base64_encode("1")
@@ -94,6 +101,11 @@ defmodule CloudStackLang.Parser.FullTest do
       var10: {:string, "coucou c'est cool"},
       var11: {:string, "coucou\n    1"},
       var12: {:string, "\n\r\t\s"},
+      var12_1: {:string, "1hello"},
+      var12_2: {:string, "hello1"},
+      var12_3: {:string, "1.0hello"},
+      var12_4: {:string, "hello1.0"},
+      var12_5: {:string, "hello wolrd!"},
       var13: {:float, 1.3},
       var14: {:float, 2.6},
       var15: {:float, 2.6},
@@ -111,11 +123,13 @@ defmodule CloudStackLang.Parser.FullTest do
               "key2" => {:float, 1.3},
               "key3" => {:map, %{"other_map" => {:string, "cool"}}}
       }},
+      var22_2: {:map, %{a: {:int, 1}, b: {:int, 2}, c: {:int, 3}}},
       var23: {:array, []},
       var24: {:array, [ {:int, 1}, {:float, 1.3}]},
       var24_1: {:int, 1},
       var24_2: {:array, [array: [int: 1, float: 1.3]]},
       var24_3: {:float, 1.3},
+      var24_4: {:array, [int: 1, int: 2, int: 3]},
       var25: {:string, "MQ=="},
       var26: {:int, 4660},
       var27: {:int, 668},
@@ -188,14 +202,6 @@ defmodule CloudStackLang.Parser.FullTest do
     """
 
     assert parse_and_eval(text, false, %{}) == {:error, 1, "Variable name 'var0' is not declared"}
-  end
-
-  test "addition type error" do
-    text = ~S"""
-    var1 = 1 + "hello"
-    """
-
-    assert parse_and_eval(text, false, %{}) == {:error, 1, "'+' operator not supported for {:int, 1}, {:string, \"hello\"}"}
   end
 
   test "substitution type error" do
