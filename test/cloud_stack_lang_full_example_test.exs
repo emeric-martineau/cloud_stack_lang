@@ -1,6 +1,6 @@
 defmodule CloudStackLang.Parser.FullTest do
   use ExUnit.Case
-  import CloudStackLang.Parser, only: [parse_and_eval: 1]
+  import CloudStackLang.Parser, only: [parse_and_eval: 3]
 
   test "all valide syntax" do
     text = ~S"""
@@ -112,7 +112,7 @@ defmodule CloudStackLang.Parser.FullTest do
       var27: {:int, 668},
     }
 
-    assert parse_and_eval(text) == result
+    assert parse_and_eval(text, false, %{}) == result
   end
 
   test "variable not found for addition" do
@@ -120,7 +120,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 + var0
     """
 
-    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "Variable name 'var0' is not declared"}
   end
 
   test "variable not found for substitution" do
@@ -128,7 +128,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 - var0
     """
 
-    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "Variable name 'var0' is not declared"}
   end
 
   test "variable not found for multiplication" do
@@ -136,7 +136,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 * var0
     """
 
-    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "Variable name 'var0' is not declared"}
   end
 
   test "variable not found for division" do
@@ -144,7 +144,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 / var0
     """
 
-    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "Variable name 'var0' is not declared"}
   end
 
   test "variable not found for exponent" do
@@ -152,7 +152,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 ^ var0
     """
 
-    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "Variable name 'var0' is not declared"}
   end
 
   test "variable not found in map" do
@@ -162,7 +162,7 @@ defmodule CloudStackLang.Parser.FullTest do
     }
     """
 
-    assert parse_and_eval(text) == {:error, 2, "Variable name 'var0' is not declared"}
+    assert parse_and_eval(text, false, %{}) == {:error, 2, "Variable name 'var0' is not declared"}
   end
 
   test "variable not found in array" do
@@ -170,7 +170,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = [ var0 ]
     """
 
-    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "Variable name 'var0' is not declared"}
   end
 
   test "variable not found in function" do
@@ -178,7 +178,7 @@ defmodule CloudStackLang.Parser.FullTest do
     base64_encode(var0)
     """
 
-    assert parse_and_eval(text) == {:error, 1, "Variable name 'var0' is not declared"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "Variable name 'var0' is not declared"}
   end
 
   test "addition type error" do
@@ -186,7 +186,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 + "hello"
     """
 
-    assert parse_and_eval(text) == {:error, 1, "'+' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "'+' operator not supported for {:int, 1}, {:string, \"hello\"}"}
   end
 
   test "substitution type error" do
@@ -194,7 +194,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 - "hello"
     """
 
-    assert parse_and_eval(text) == {:error, 1, "'-' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "'-' operator not supported for {:int, 1}, {:string, \"hello\"}"}
   end
 
   test "multiplication type error" do
@@ -202,7 +202,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 * "hello"
     """
 
-    assert parse_and_eval(text) == {:error, 1, "'*' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "'*' operator not supported for {:int, 1}, {:string, \"hello\"}"}
   end
 
   test "division type error" do
@@ -210,7 +210,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 / "hello"
     """
 
-    assert parse_and_eval(text) == {:error, 1, "'/' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "'/' operator not supported for {:int, 1}, {:string, \"hello\"}"}
   end
 
   test "exponent type error" do
@@ -218,7 +218,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = 1 ^ "hello"
     """
 
-    assert parse_and_eval(text) == {:error, 1, "'^' operator not supported for {:int, 1}, {:string, \"hello\"}"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "'^' operator not supported for {:int, 1}, {:string, \"hello\"}"}
   end
 
   test "get value map error" do
@@ -227,7 +227,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = var0[:a]
     """
 
-    assert parse_and_eval(text) == {:error, 2, "Trying get a value with key 'a' on non-map value"}
+    assert parse_and_eval(text, false, %{}) == {:error, 2, "Trying get a value with key 'a' on non-map value"}
   end
 
   test "get value map with error in key" do
@@ -239,7 +239,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = var0[e]
     """
 
-    assert parse_and_eval(text) == {:error, 5, "Variable name 'e' is not declared"}
+    assert parse_and_eval(text, false, %{}) == {:error, 5, "Variable name 'e' is not declared"}
   end
 
   test "call function not found" do
@@ -247,7 +247,7 @@ defmodule CloudStackLang.Parser.FullTest do
     function_not_found()
     """
 
-    assert parse_and_eval(text) == {:error, 1, "Function 'function_not_found' not found"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "Function 'function_not_found' not found"}
   end
 
   test "call function not found in assignation" do
@@ -255,7 +255,7 @@ defmodule CloudStackLang.Parser.FullTest do
     var0 = function_not_found()
     """
 
-    assert parse_and_eval(text) == {:error, 1, "Function 'function_not_found' not found"}
+    assert parse_and_eval(text, false, %{}) == {:error, 1, "Function 'function_not_found' not found"}
   end
 
   test "array out of bound" do
@@ -264,6 +264,6 @@ defmodule CloudStackLang.Parser.FullTest do
     var1 = var0[5]
     """
 
-    assert parse_and_eval(text) == {:error, 2, "Index '5' is out of range (3 items in array)"}
+    assert parse_and_eval(text, false, %{}) == {:error, 2, "Index '5' is out of range (3 items in array)"}
   end
 end
