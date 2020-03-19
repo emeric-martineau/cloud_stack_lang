@@ -7,6 +7,9 @@ defmodule CloudStackLang.Parser do
     iex> CloudStackLang.Parser.parse_and_eval("a = 1", false, %{})
     %{a: {:int, 1}}
 
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1_000_000", false, %{})
+    %{a: {:int, 1000000}}
+
     iex> CloudStackLang.Parser.parse_and_eval("a = 1 + 1", false, %{})
     %{a: {:int, 2}}
 
@@ -36,6 +39,12 @@ defmodule CloudStackLang.Parser do
 
     iex> CloudStackLang.Parser.parse_and_eval("a = 1.3", false, %{})
     %{a: {:float, 1.3}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1.2_3_4", false, %{})
+    %{a: {:float, 1.234}}
+
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1.2_3_4e2_3", false, %{})
+    %{a: {:float, 1.234e23}}
 
     iex> CloudStackLang.Parser.parse_and_eval("a = 1.3e2", false, %{})
     %{a: {:float, 1.3e2}}
@@ -168,13 +177,19 @@ defmodule CloudStackLang.Parser do
   end
 
   defp reduce_to_value({:int, _line, value}, _state) do
-    # TODO add support xxx_xxx_xxx notation
-    {:int, List.to_integer(value)}
+    v = value
+    |> List.to_string
+    |> String.replace("_", "")
+
+    {:int, String.to_integer(v)}
   end
 
   defp reduce_to_value({:float, _line, value}, _state) do
-    # TODO add support xxx_xxx_xxx notation
-    {:float, List.to_float(value)}
+    v = value
+    |> List.to_string
+    |> String.replace("_", "")
+
+    {:float, String.to_float(v)}
   end
 
   defp reduce_to_value({:hexa, _line, value}, _state) do

@@ -20,6 +20,9 @@ defmodule CloudStackLang.Parser.FullTest do
 
     var8 = 10 + 6 / 3 * 20 / 4
 
+    var8_1 = 1_0_00
+
+    // Atom
     var9 = :toto
 
     // String
@@ -38,6 +41,9 @@ defmodule CloudStackLang.Parser.FullTest do
     var18 = 1.3 + 1
     var19 = 2.6 / 2
     var20 = 1.3 ^ 2
+
+    var20_1 = 1.2_34_5
+    var20_2 = 1.2_34_5e1_2
 
     // Map
     var21 = {}
@@ -83,6 +89,7 @@ defmodule CloudStackLang.Parser.FullTest do
       var6: {:int, 2},
       var7: {:int, 27},
       var8: {:int, 20},
+      var8_1: {:int, 1000},
       var9: {:atom, :toto},
       var10: {:string, "coucou c'est cool"},
       var11: {:string, "coucou\n    1"},
@@ -95,6 +102,8 @@ defmodule CloudStackLang.Parser.FullTest do
       var18: {:float, 2.3},
       var19: {:float, 1.3},
       var20: {:float, 1.6900000000000002},
+      var20_1: {:float, 1.2345},
+      var20_2: {:float, 1.2345e12},
       var21: {:map, %{}},
       var22: {:map, %{
               :a => {:string, "hello"},
