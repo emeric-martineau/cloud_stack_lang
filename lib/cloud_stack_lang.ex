@@ -263,16 +263,18 @@ defmodule CloudStackLang.Parser do
     reduce_to_value(expr, state)
   end
 
-  defp reduce_to_value({:fct_call, {:name, line, fct_name}, args}, state) do
+  defp reduce_to_value({:fct_call, namespace, args}, state) do
     news_args = Enum.map(args, fn a -> reduce_to_value(a, state) end)
 
     fct_reduce = fn data -> data end
 
-    call_if_no_error(news_args, fct_reduce, &call_function/3, [List.to_string(fct_name), news_args, line])
+    {:name, line, _name} = List.last(namespace)
+
+    call_if_no_error(news_args, fct_reduce, &call_function/3, [namespace, news_args, line])
   end
 
-  defp call_function(fct_name, news_args, line) do
-    return_value = FctBase.run(fct_name, news_args)
+  defp call_function(namespace_call, news_args, line) do
+    return_value = FctBase.run(namespace_call, news_args)
 
     case return_value do
       {:error, msg} -> {:error, line, msg}
@@ -309,13 +311,14 @@ defmodule CloudStackLang.Parser do
     end
   end
 
-  defp evaluate_tree([{:fct_call, {:name, line, fct_name}, args} | tail], state) do
-    return_value = reduce_to_value({:fct_call, {:name, line, fct_name}, args}, state)
+  defp evaluate_tree([{:fct_call, namespace, args} | tail], state) do
+    return_value = reduce_to_value({:fct_call, namespace, args}, state)
 
     case return_value do
       {:error, line, msg} -> {:error, line, msg}
       _ -> evaluate_tree(tail, state)
     end
+
   end
 
   defp evaluate_tree([], state) do

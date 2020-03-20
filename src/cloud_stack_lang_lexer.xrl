@@ -39,6 +39,7 @@ Rules.
 {DIV}                       : {token, {'/', TokenLine}}.
 \=                          : {token, {'=', TokenLine}}.
 \^                          : {token, {'^', TokenLine}}.
+\.                          : {token, {'.', TokenLine}}.
 {ATOM}                      : {token, {atom, TokenLine, TokenChars}}.
 {NAME}                      : {token, {name, TokenLine, TokenChars}}.
 {INT}                       : {token, {int, TokenLine, TokenChars}}.

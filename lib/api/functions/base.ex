@@ -3,17 +3,17 @@ defmodule CloudStackLang.Functions.Base do
   This module contains all base functions, available in any context.
 
     ## Examples
-      iex> CloudStackLang.Functions.Base.run("base64_encode", [{:string, "hello"}])
+      iex> CloudStackLang.Functions.Base.run([{:name, 1, 'base64'}, {:name, 1, 'encode'}], [{:string, "hello"}])
       {:string, "aGVsbG8="}
 
-      iex> CloudStackLang.Functions.Base.run("base64_decode", [{:string, "aGVsbG8="}])
+      iex> CloudStackLang.Functions.Base.run([{:name, 1, 'base64'}, {:name, 1, 'decode'}], [{:string, "aGVsbG8="}])
       {:string, "hello"}
 
-      iex> CloudStackLang.Functions.Base.run("base64_decode", [{:int, 1}])
-      {:error, "Bad type argument for 'base64_decode'. The argument n°1 waiting 'string' and given 'int'"}
+      iex> CloudStackLang.Functions.Base.run([{:name, 1, 'base64'}, {:name, 1, 'decode'}], [{:int, 1}])
+      {:error, "Bad type argument for 'base64.decode'. The argument n°1 waiting 'string' and given 'int'"}
 
-      iex> CloudStackLang.Functions.Base.run("base64_decode", [{:string, "aGVsbG8="}, {:int, 1}])
-      {:error, "Bad arguments for 'base64_decode'. Waiting 1, given 2"}
+      iex> CloudStackLang.Functions.Base.run([{:name, 1, 'base64'}, {:name, 1, 'decode'}], [{:string, "aGVsbG8="}, {:int, 1}])
+      {:error, "Bad arguments for 'base64.decode'. Waiting 1, given 2"}
   """
   alias CloudStackLang.Functions.BaseWrapper
 
@@ -21,14 +21,18 @@ defmodule CloudStackLang.Functions.Base do
 
   # <function name as atom> => [args type], return type, function, return fct transformer
   @functions %{
-    :base64_decode => {[:string], :string, &Base.decode64/1},
-    :base64_encode => {[:string], :string, &BaseWrapper.encode64/1},
+    :base64 => %{
+      :decode => {[:string], :string, &Base.decode64/1},
+      :encode => {[:string], :string, &BaseWrapper.encode64/1},
+    }
   }
 
-  def run(function_name, args) do
-    fct_entry = @functions[String.to_atom(function_name)]
+  def run(namespace_call, args) do
+    fct_entry = get_function_entry(namespace_call, @functions)
 
-    call(function_name, args, fct_entry)
+    function_name = namespace_call
+      |> Enum.map(fn {:name, _line, name} -> name end)
+      |> Enum.join(".")
 
     case call(function_name, args, fct_entry) do
       {:ok, value} ->
@@ -38,9 +42,7 @@ defmodule CloudStackLang.Functions.Base do
     end
   end
 
-  defp call(function_name, _args, nil) do
-    {:error, "Function '#{function_name}' not found"}
-  end
+  defp call(function_name, _args, nil), do: {:error, "Function '#{function_name}' not found"}
 
   defp call(function_name, args, fct_entry) do
     {args_type, _return_type, _fct_ptr} = fct_entry
@@ -71,4 +73,22 @@ defmodule CloudStackLang.Functions.Base do
   end
 
   defp check_args_type(_function_name, [], [], _index), do: true
+
+  defp get_function_entry([namespace | []], functions) do
+    {:name, _line, fct_name} = namespace
+
+    functions[List.to_atom(fct_name)]
+  end
+
+  defp get_function_entry([_namespace | _tail], nil), do: nil
+
+  defp get_function_entry([namespace | tail], functions) do
+    {:name, _line, fct_name} = namespace
+
+    get_function_entry(tail, functions[List.to_atom(fct_name)])
+  end
+
+
+
+
 end

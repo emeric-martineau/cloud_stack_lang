@@ -76,8 +76,8 @@ defmodule CloudStackLang.Parser.FullTest do
     array6 = [ 1 ] + [ 2 3 ]
 
     // Function
-    base64_encode("1")
-    function1 = base64_encode("1")
+    base64.encode("1")
+    function1 = base64.encode("1")
 
     // Hexa
     hexa1 = 0x1234

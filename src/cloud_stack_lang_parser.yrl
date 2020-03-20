@@ -9,7 +9,7 @@ Nonterminals
   expr exprs
   map map_arg map_args map_access
   array
-  function_call
+  function_call function_namespace
 .
 
 Terminals
@@ -26,6 +26,7 @@ Terminals
   '/'
   '='
   '^'
+  '.'
   open_map close_map
   open_array close_array
   open_parenthesis close_parenthesis
@@ -41,12 +42,12 @@ Left 300 '-'.
 Left 400 '*'.
 Left 400 '/'.
 Left 500 '^'.
+Nonassoc 900 open_array close_array '.' open_parenthesis close_parenthesis.
 
 root -> assignment : ['$1'].
 root -> function_call : ['$1'].
 root -> assignment root : lists:append(['$1'], '$2').
 root -> function_call root : lists:append(['$1'], '$2').
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Assignment
@@ -114,8 +115,12 @@ array -> open_array exprs close_array : {build_array, '$1', '$2'}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function
 
-function_call -> name open_parenthesis close_parenthesis : {fct_call, '$1', []}.
-function_call -> name open_parenthesis exprs close_parenthesis : {fct_call, '$1', '$3'}.
+function_call -> function_namespace open_parenthesis close_parenthesis : {fct_call, '$1', []}.
+function_call -> function_namespace open_parenthesis exprs close_parenthesis : {fct_call, '$1', '$3'}.
+function_call -> name open_parenthesis close_parenthesis : {fct_call, ['$1'], []}.
+function_call -> name open_parenthesis exprs close_parenthesis : {fct_call, ['$1'], '$3'}.
+
+function_namespace -> name '.' name : lists:append(['$1'], ['$3']).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
