@@ -86,7 +86,7 @@ defmodule CloudStackLang.Parser.FullTest do
     octal1 = 0o1234
     """
 
-    result = %{fct: %{}, vars: %{
+    result = %{
       int0: {:int, -1},
       int1: {:int, 1},
       int2: {:int, 2},
@@ -130,12 +130,18 @@ defmodule CloudStackLang.Parser.FullTest do
       array4: {:array, [array: [int: 1, float: 1.3]]},
       array5: {:float, 1.3},
       array6: {:array, [int: 1, int: 2, int: 3]},
-      function1: {:string, "MQ=="},
+      function1: {:string, "1"},
       hexa1: {:int, 4660},
       octal1: {:int, 668},
-    }}
+    }
 
-    assert parse_and_eval(text, false, %{}, %{}) == result
+    fct = %{
+      :base64 => %{
+        :encode => {[:string], :string, fn x -> {:ok, x} end},
+      }
+    }
+
+    assert parse_and_eval(text, false, %{}, fct)[:vars] == result
   end
 
   test "variable not found for addition" do

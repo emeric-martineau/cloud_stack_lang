@@ -104,7 +104,7 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Operator.Exp
   alias CloudStackLang.Number
   alias CloudStackLang.Map, as: MMap
-  alias CloudStackLang.Functions.Base, as: FctBase
+  alias CloudStackLang.Functions.Executor
 
   defp compute_operation(lhs, rhs, state, function) do
     lvalue = reduce_to_value(lhs, state)
@@ -270,11 +270,11 @@ defmodule CloudStackLang.Parser do
 
     {:name, line, _name} = List.last(namespace)
 
-    call_if_no_error(news_args, fct_reduce, &call_function/3, [namespace, news_args, line])
+    call_if_no_error(news_args, fct_reduce, &call_function/4, [namespace, news_args, line, state])
   end
 
-  defp call_function(namespace_call, news_args, line) do
-    return_value = FctBase.run(namespace_call, news_args)
+  defp call_function(namespace_call, news_args, line, state) do
+    return_value = Executor.run(namespace_call, news_args, state)
 
     case return_value do
       {:error, msg} -> {:error, line, msg}
