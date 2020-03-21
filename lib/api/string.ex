@@ -44,25 +44,25 @@ defmodule CloudStackLang.String do
 
   ## Examples
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:int, 1}})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:vars => %{:var1 => {:int, 1}}})
       "'1'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:float, 1.13}})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:vars => %{:var1 => {:float, 1.13}}})
       "'1.13'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:string, "2"}})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:vars => %{:var1 => {:string, "2"}}})
       "'2'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:array, [1, 2]}})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:vars => %{:var1 => {:array, [1, 2]}}})
       "'<list>'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:var1 => {:map, %{ "a" => 2 }}})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:vars => %{:var1 => {:map, %{ "a" => 2 }}}})
       "'<map>'"
 
-      iex> CloudStackLang.String.interpolate("'${var1}'", %{:e => 3})
+      iex> CloudStackLang.String.interpolate("'${var1}'", %{:vars => %{:e => 3}})
       {:error, 1, "Variable name 'var1' is not declared"}
 
-      iex> CloudStackLang.String.interpolate("'${var1[1][0]}'", %{:var1 => {:array, [{:int, 1}, {:array, [ {:int, 3}]}]}})
+      iex> CloudStackLang.String.interpolate("'${var1[1][0]}'", %{:vars => %{:var1 => {:array, [{:int, 1}, {:array, [ {:int, 3}]}]}}})
       "'3'"
   """
   def interpolate(value, state) do
@@ -98,11 +98,11 @@ defmodule CloudStackLang.String do
   end
 
   defp get(state, key) do
-    value = CloudStackLang.Parser.parse_and_eval("result=" <> key, false, state)
+    value = CloudStackLang.Parser.parse_and_eval("result=" <> key, false, state[:vars], state[:fct])
 
     case value do
       {:error, line, msg} -> {:error, line, msg}
-      v -> unwrap(v[:result])
+      v -> unwrap(v[:vars][:result])
     end
   end
 

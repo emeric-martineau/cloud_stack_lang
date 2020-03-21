@@ -17,8 +17,6 @@ defmodule CloudStackLang.Functions.Base do
   """
   alias CloudStackLang.Functions.BaseWrapper
 
-  # TODO add support base62.encode() base64.decode() notation
-
   # <function name as atom> => [args type], return type, function, return fct transformer
   @functions %{
     :base64 => %{

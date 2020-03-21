@@ -5,6 +5,6 @@ defmodule CloudStackLang.Main do
     IO.puts "Parsing #{filename}"
     text = File.read!(filename)
 
-    CloudStackLang.Parser.parse_and_eval(text, true, %{})
+    CloudStackLang.Parser.parse_and_eval(text, true, %{}, %{})
   end
 end
