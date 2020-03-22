@@ -137,7 +137,7 @@ defmodule CloudStackLang.Parser.FullTest do
 
     fct = %{
       :base64 => %{
-        :encode => {[:string], :string, fn x -> {:ok, x} end},
+        :encode => {:fct, [:string], fn x -> {:string, x} end},
       }
     }
 

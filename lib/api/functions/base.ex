@@ -18,20 +18,27 @@ defmodule CloudStackLang.Functions.Base do
     # The function must return {:ok, value} or {:error, msg}
     %{
       :base64 => %{
-        :decode => {[:string], :string, &Base.decode64/1},
-        :encode => {[:string], :string, &encode64/1},
+        :decode => {:fct, [:string], :string, &Base.decode64/1},
+        :encode => {:fct, [:string], :string, &encode64/1},
       },
       :log => %{
-        :debug => {[:string], :void, &debug/1},
-        :info => {[:string], :void, &info/1},
-        :warning => {[:string], :void, &warning/1},
-        :error => {[:string], :void, &error/1},
+        :debug => {:fct, [:string], :void, &debug/1},
+        :info => {:fct, [:string], :void, &info/1},
+        :warning => {:fct, [:string], :void, &warning/1},
+        :error => {:fct, [:string], :void, &error/1},
       }
     }
   end
 
+  defp decode64(s) do
+    case Base.decode64(s) do
+      {:ok, r} -> {:string, r}
+      v -> v
+    end
+  end
+
   defp encode64(s) do
-    {:ok, Base.encode64(s)}
+    {:string, Base.encode64(s)}
   end
 
   defp debug(s) do

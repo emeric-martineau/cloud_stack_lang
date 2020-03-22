@@ -1,96 +1,87 @@
 defmodule CloudStackLang.Functions.Executor do
   @moduledoc """
   This module contains all base functions, available in any context.
+    <function name as atom> => :fct, [args type], function
+    <function name as atom> => :manager, function
 
+    args type  : array with list of arg type of function
+    function   : the function must return {type, value} or {:error, msg}
+
+    type list:
+      :int
+      :float
+      :string
+      :array
+      :map
+      :void
+    
     ## Examples
-      iex> CloudStackLang.Functions.Executor.run(
-        [{:name, 1, 'base64'}, {:name, 1, 'encode'}],
-        [{:string, "hello"}],
-        %{
-          :base64 => %{
-            :encode => {[:string], :string, fn x -> {:ok, x} end},
-          }
-        })
+      iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'base64'}, {:name, 1, 'encode'}], [{:string, "hello"}], %{:fct => %{:base64 => %{:encode => {:fct, [:string], fn x -> {:string, x} end}}}})
       {:string, "hello"}
 
-      iex> CloudStackLang.Functions.Executor.run(
-        [{:name, 1, 'base64'}, {:name, 1, 'encode'}],
-        [{:int, 1}],
-        %{
-          :base64 => %{
-            :encode => {[:string], :string, fn x -> {:ok, x} end},
-          }
-        })
-      {:error, "Bad type argument for 'base64.decode'. The argument n°1 waiting 'string' and given 'int'"}
+      iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'base64'}, {:name, 1, 'encode'}], [{:int, 1}], %{:fct => %{:base64 => %{:encode => {:fct, [:string], fn x -> {:string, x} end}}}})
+      {:error, "Bad type argument for 'base64.encode'. The argument n°1 waiting 'string' and given 'int'"}
 
-      iex> CloudStackLang.Functions.Executor.run(
-        [{:name, 1, 'base64'}, {:name, 1, 'encode'}],
-        [{:string, "hello"}, {:int, 1}],
-        %{
-          :base64 => %{
-            :encode => {[:string], :string, fn x -> {:ok, x} end},
-          }
-        })
-      {:error, "Bad arguments for 'base64.decode'. Waiting 1, given 2"}
+      iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'base64'}, {:name, 1, 'encode'}], [{:string, "hello"}, {:int, 1}], %{:fct => %{:base64 => %{:encode => {:fct, [:string], fn x -> {:string, x} end}}}})
+      {:error, "Bad arguments for 'base64.encode'. Waiting 1, given 2"}
+
+      iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'manager'}, {:name, 1, 'call'}], [{:string, "hello"}], %{:fct => %{:manager => {:manager, fn _namespace, _args -> {:int, 45} end}}})
+      {:int, 45}
   """
   def run(namespace_call, args, state) do
     fct_entry = get_function_entry(namespace_call, state[:fct])
 
-    function_name = namespace_call
-      |> Enum.map(fn {:name, _line, name} -> name end)
-      |> Enum.join(".")
-
-    case call(function_name, args, fct_entry) do
-      {:ok, value} ->
-        {_args_type, return_type, _fct_ptr} = fct_entry
-        {return_type, value}
-      v -> v
-    end
+    call(namespace_call, args, fct_entry)
   end
 
-  defp call(function_name, _args, nil), do: {:error, "Function '#{function_name}' not found"}
+  defp call(namespace_call, _args, nil), do: {:error, "Function '#{get_function_name(namespace_call)}' not found"}
 
-  defp call(function_name, args, fct_entry) do
-    {args_type, _return_type, _fct_ptr} = fct_entry
+  defp call(namespace_call, args, {:manager, fct_ptr}) do
+    apply(fct_ptr, [namespace_call, args])
+  end
 
+  defp call(namespace_call, args, {:fct, args_type, fct_ptr}) do
     cond do
-      length(args) == length(args_type) -> exec(function_name, args, fct_entry)
-      true -> {:error, "Bad arguments for '#{function_name}'. Waiting #{length(args_type)}, given #{length(args)}"}
+      length(args) == length(args_type) -> exec(namespace_call, args, {:fct, args_type, fct_ptr})
+      true -> {:error, "Bad arguments for '#{get_function_name(namespace_call)}'. Waiting #{length(args_type)}, given #{length(args)}"}
     end
   end
 
-  defp exec(function_name, args, fct_entry) do
+  defp exec(namespace_call, args, {:fct, args_type, fct_ptr}) do
     given_args_type = Enum.map(args, fn {type, _value} -> type end)
     given_args_value = Enum.map(args, fn {_type, value} -> value end)
 
-    {args_type, _return_type, fct_ptr} = fct_entry
-
-    case check_args_type(function_name, args_type, given_args_type, 1) do
+    case check_args_type(namespace_call, args_type, given_args_type, 1) do
       {:error, msg} -> {:error, msg}
       _ -> apply(fct_ptr, given_args_value)
     end
   end
 
-  defp check_args_type(function_name, [waiting_type | tail_waiting], [given_type | tail_given], index) do
+  defp check_args_type(namespace_call, [waiting_type | tail_waiting], [given_type | tail_given], index) do
     case waiting_type == given_type do
-      true -> check_args_type(function_name, tail_waiting, tail_given, index + 1)
-      _ -> {:error, "Bad type argument for '#{function_name}'. The argument n°#{index} waiting '#{waiting_type}' and given '#{given_type}'"}
+      true -> check_args_type(namespace_call, tail_waiting, tail_given, index + 1)
+      _ -> {:error, "Bad type argument for '#{get_function_name(namespace_call)}'. The argument n°#{index} waiting '#{waiting_type}' and given '#{given_type}'"}
     end
   end
 
   defp check_args_type(_function_name, [], [], _index), do: true
 
-  defp get_function_entry([namespace | []], functions) do
-    {:name, _line, fct_name} = namespace
-
-    functions[List.to_atom(fct_name)]
+  defp get_function_entry([_namespace | _tail], {:manager, fct}) do
+    {:manager, fct}
   end
 
   defp get_function_entry([_namespace | _tail], nil), do: nil
+
+  defp get_function_entry([], functions), do: functions
 
   defp get_function_entry([namespace | tail], functions) do
     {:name, _line, fct_name} = namespace
 
     get_function_entry(tail, functions[List.to_atom(fct_name)])
   end
+
+  defp get_function_name(namespace_call), do:
+    namespace_call
+    |> Enum.map(fn {:name, _line, name} -> name end)
+    |> Enum.join(".")
 end
