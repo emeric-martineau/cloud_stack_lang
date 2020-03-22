@@ -301,12 +301,13 @@ defmodule CloudStackLang.Parser do
     call_if_no_error(key_list, fct_reduce, &MMap.reduce/2, [key_list, local_state])
   end
 
-  defp evaluate_tree([{:assign, {:name, _line, variable_name}, variable_expr_value} | tail], state) do
+  defp evaluate_tree([{:assign, {:name, line, variable_name}, variable_expr_value} | tail], state) do
     value = reduce_to_value(variable_expr_value, state)
     key = List.to_atom(variable_name)
 
     case value do
       {:error, line, msg} -> {:error, line, msg}
+      {:void} -> {:error, line, "Error, a function return void value. Cannot be assigned to variable."}
       value ->
         new_state = Map.update(state, :vars, %{}, fn v -> Map.merge(v, %{key => value}) end)
 
