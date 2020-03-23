@@ -2,7 +2,7 @@ defmodule ExampleElixirParser.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :cloud_stack_lang,
+    [app: :csl,
      version: "0.1.0",
      elixir: "~> 1.10",
      build_embedded: Mix.env == :prod,

@@ -2,4 +2,5 @@ src/*.erl
 *.iml
 _build/
 cloud_stack_lang
+csl
 deps/*

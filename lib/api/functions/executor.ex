@@ -25,7 +25,7 @@ defmodule CloudStackLang.Functions.Executor do
       iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'base64'}, {:name, 1, 'encode'}], [{:string, "hello"}, {:int, 1}], %{:fct => %{:base64 => %{:encode => {:fct, [:string], fn x -> {:string, x} end}}}})
       {:error, "Bad arguments for 'base64.encode'. Waiting 1, given 2"}
 
-      iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'manager'}, {:name, 1, 'call'}], [{:string, "hello"}], %{:fct => %{:manager => {:manager, fn _namespace, _args -> {:int, 45} end}}})
+      iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'manager'}], [{:string, "hello"}], %{:fct => %{:manager => {:manager, fn _namespace, _args -> {:int, 45} end}}})
       {:int, 45}
   """
   def run(namespace_call, args, state) do
@@ -66,13 +66,13 @@ defmodule CloudStackLang.Functions.Executor do
 
   defp check_args_type(_function_name, [], [], _index), do: true
 
-  defp get_function_entry([_namespace | _tail], {:manager, fct}) do
-    {:manager, fct}
+  defp get_function_entry([namespace | []], functions) do
+    {:name, _line, fct_name} = namespace
+
+    functions[List.to_atom(fct_name)]
   end
 
   defp get_function_entry([_namespace | _tail], nil), do: nil
-
-  defp get_function_entry([], functions), do: functions
 
   defp get_function_entry([namespace | tail], functions) do
     {:name, _line, fct_name} = namespace
