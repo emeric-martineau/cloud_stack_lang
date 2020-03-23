@@ -98,7 +98,7 @@ defmodule CloudStackLang.String do
   end
 
   defp get(state, key) do
-    value = CloudStackLang.Parser.parse_and_eval("result=" <> key, false, state[:vars], state[:fct])
+    value = CloudStackLang.Parser.parse_and_eval("result=" <> key, false, state[:vars], state[:fct], state[:modules_fct])
 
     case value do
       {:error, line, msg} -> {:error, line, msg}

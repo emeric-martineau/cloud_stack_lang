@@ -11,6 +11,7 @@ FLOAT                     = -?([0-9]+|[0-9][0-9_]+[0-9])\.([0-9]+|[0-9][0-9_]+[0
 HEXA                      = 0[xX][a-fA-F0-9]+
 OCTAL                     = 0[oO][0-7]+
 ATOM                      = :[a-zA-Z_][a-zA-Z0-9_]*
+NAMESPACE_SEPARATOR       = ::
 NAME                      = [a-zA-Z_][a-zA-Z0-9_]*
 WHITESPACE                = [\s\t\n\r]
 SIMPLE_STRING             = '([^'\\]|\\.)*'
@@ -55,6 +56,7 @@ Rules.
 {CLOSE_ARRAY}               : {token, {close_array, TokenLine}}.
 {OPEN_PARENTHESIS}          : {token, {open_parenthesis, TokenLine}}.
 {CLOSE_PARENTHESIS}         : {token, {close_parenthesis, TokenLine}}.
+{NAMESPACE_SEPARATOR}       : {token, {namespace_separator, TokenLine}}.
 
 %% The Erlang code section (which is mandatory), is where you can add
 %% erlang functions you can call in the Definitions. In this case we

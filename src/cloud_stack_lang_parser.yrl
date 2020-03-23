@@ -10,6 +10,7 @@ Nonterminals
   map map_arg map_args map_access
   array
   function_call function_namespace
+  module module_map module_map_arg module_map_args module_namespace
 .
 
 Terminals
@@ -30,6 +31,7 @@ Terminals
   open_map close_map
   open_array close_array
   open_parenthesis close_parenthesis
+  namespace_separator
 .
 
 Rootsymbol
@@ -46,8 +48,10 @@ Nonassoc 900 open_array close_array '.' open_parenthesis close_parenthesis.
 
 root -> assignment : ['$1'].
 root -> function_call : ['$1'].
+root -> module : ['$1'].
 root -> assignment root : lists:append(['$1'], '$2').
 root -> function_call root : lists:append(['$1'], '$2').
+root -> module root : lists:append(['$1'], '$2').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Assignment
@@ -95,6 +99,7 @@ map_args -> map_arg : '$1'.
 map_args -> map_arg map_args : lists:append('$1', '$2').
 
 map_arg -> atom '=' expr : [{map_arg, '$1', '$3'}].
+map_arg -> name '=' expr : [{map_arg, '$1', '$3'}].
 map_arg -> simple_string '=' expr : [{map_arg, '$1', '$3'}].
 map_arg -> interpolate_string '=' expr : [{map_arg, '$1', '$3'}].
 
@@ -122,6 +127,23 @@ function_call -> name open_parenthesis exprs close_parenthesis : {fct_call, ['$1
 
 function_namespace -> name '.' name : lists:append(['$1'], ['$3']).
 function_namespace -> function_namespace '.' name : lists:append('$1', ['$3']).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Module
+
+module_map -> open_map module_map_args close_map : {build_module_map, '$1', '$2'}.
+
+module_map_args -> module_map_arg : '$1'.
+module_map_args -> module_map_arg module_map_args : lists:append('$1', '$2').
+
+module_map_arg -> name '=' expr : [{module_map_arg, '$1', '$3'}].
+
+module_namespace -> name namespace_separator name : lists:append(['$1'], ['$3']).
+module_namespace -> module_namespace namespace_separator name : lists:append('$1', ['$3']).
+
+module -> module_namespace open_parenthesis atom close_parenthesis module_map : {module, '$1', '$3', '$5'}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

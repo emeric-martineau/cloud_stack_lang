@@ -4,98 +4,98 @@ defmodule CloudStackLang.Parser do
 
   ## Examples
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 1}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 1}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1_000_000", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 1000000}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1_000_000", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 1000000}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1 + 1", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 2}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1 + 1", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 2}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1 - 1", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 0}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1 - 1", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 0}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 4 / 2", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 2}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 4 / 2", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 2}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 7\nb = 4\nresult = a + b * 10 / 2", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 7}, b: {:int, 4}, result: {:int, 27}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 7\nb = 4\nresult = a + b * 10 / 2", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 7}, b: {:int, 4}, result: {:int, 27}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = :toto", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:atom, :toto}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = :toto", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:atom, :toto}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("/*\nThis is multi line comment\n*/\na = :toto", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:atom, :toto}}}
+    iex> CloudStackLang.Parser.parse_and_eval("/*\nThis is multi line comment\n*/\na = :toto", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:atom, :toto}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("// This is single line comment\na = :toto", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:atom, :toto}}}
+    iex> CloudStackLang.Parser.parse_and_eval("// This is single line comment\na = :toto", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:atom, :toto}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1\nb='no interpolate ${a} \\' with single quote'", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 1}, b: {:string, "no interpolate ${a} ' with single quote"}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1\nb='no interpolate ${a} \\' with single quote'", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 1}, b: {:string, "no interpolate ${a} ' with single quote"}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1\nb=\"interpolate ${a} \\\" with double quote\"", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 1}, b: {:string, "interpolate 1 \" with double quote"}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1\nb=\"interpolate ${a} \\\" with double quote\"", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 1}, b: {:string, "interpolate 1 \" with double quote"}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1.3", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:float, 1.3}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1.3", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:float, 1.3}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1.2_3_4", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:float, 1.234}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1.2_3_4", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:float, 1.234}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1.2_3_4e2_3", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:float, 1.234e23}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1.2_3_4e2_3", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:float, 1.234e23}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 1.3e2", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:float, 1.3e2}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 1.3e2", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:float, 1.3e2}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = -1.3e2", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:float, -1.3e2}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = -1.3e2", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:float, -1.3e2}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = -1", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, -1}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = -1", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, -1}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = {}", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:map, %{}}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = {}", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:map, %{}}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = 2 }", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:map, %{:a => {:int, 2}}}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = 2 }", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:map, %{:a => {:int, 2}}}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = 2 'b' = 3}", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:map, %{:a => {:int, 2}, "b" => {:int, 3}}}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = 2 'b' = 3}", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:map, %{:a => {:int, 2}, "b" => {:int, 3}}}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = []", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:array, []}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = []", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:array, []}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = [ 2 ]", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:array, [ {:int, 2} ]}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = [ 2 ]", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:array, [ {:int, 2} ]}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = [ 2 3 ]", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:array, [ {:int, 2}, {:int, 3} ]}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = [ 2 3 ]", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:array, [ {:int, 2}, {:int, 3} ]}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 0xfa", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 250}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 0xfa", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 250}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 0xFA", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 250}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 0xFA", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 250}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = 0o531", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 345}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = 0o531", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 345}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = (1 * (3 + 5))", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:int, 8}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = (1 * (3 + 5))", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:int, 8}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = 1}\nb = a[:a]", false, %{}, %{})
-    %{fct: %{}, vars: %{a: {:map, %{ :a => {:int, 1}}}, b: {:int, 1}}}
+    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = 1}\nb = a[:a]", false, %{}, %{}, %{})
+    %{fct: %{}, vars: %{a: {:map, %{ :a => {:int, 1}}}, b: {:int, 1}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = { :b = 2 } }\nb = a[:a][:b]", false, %{}, %{})
+    iex> CloudStackLang.Parser.parse_and_eval("a = { :a = { :b = 2 } }\nb = a[:a][:b]", false, %{}, %{}, %{})
     %{fct: %{}, vars: %{a:
       {:map, %{
         :a => {:map, %{
           :b => {:int, 2}
         }}
       }},
-    b: {:int, 2}}}
+    b: {:int, 2}}, modules: [], modules_fct: %{} }
   """
   alias CloudStackLang.Operator.Add
   alias CloudStackLang.Operator.Div
@@ -105,6 +105,12 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Number
   alias CloudStackLang.Map, as: MMap
   alias CloudStackLang.Functions.Executor
+
+  defp get_module_type(namespace_call), do:
+    namespace_call
+    |> Enum.map(fn {:name, _line, name} -> name end)
+    |> Enum.map(&List.to_string/1)
+    |> Enum.join("::")
 
   defp compute_operation(lhs, rhs, state, function) do
     lvalue = reduce_to_value(lhs, state)
@@ -165,7 +171,13 @@ defmodule CloudStackLang.Parser do
   defp reduce_to_value({:map, _line, value}, state) do
     list_of_key_value_compute = Enum.map(value,
       fn {:map_arg, key, expr} ->
-        {_, k} = reduce_to_value(key, state)
+        # In case of module, we wan can use name to key for more readable
+        {_, k} =
+          case key do
+            {:name, _line, value} -> {:name, List.to_string(value)}
+            k -> reduce_to_value(k, state)
+          end
+
         {k, reduce_to_value(expr, state)}
       end)
 
@@ -309,6 +321,10 @@ defmodule CloudStackLang.Parser do
     call_if_no_error(key_list, fct_reduce, &MMap.reduce/2, [key_list, local_state])
   end
 
+  defp extract_value({_type, value}) do
+    value
+  end
+
   defp evaluate_tree([{:assign, {:name, line, variable_name}, variable_expr_value} | tail], state) do
     value = reduce_to_value(variable_expr_value, state)
     key = List.to_atom(variable_name)
@@ -331,6 +347,40 @@ defmodule CloudStackLang.Parser do
       _ -> evaluate_tree(tail, state)
     end
 
+  end
+
+  defp evaluate_tree([{:module, namespace, name, map_properties} | tail], state) do
+    {:build_module_map, _, properties} =  map_properties
+    tmp_prop = Enum.map(properties, fn {:module_map_arg, {:name, _line, prop_name}, value} ->
+      p_name = prop_name
+      |> List.to_string
+      |> Macro.camelize
+
+      {p_name, reduce_to_value(value, state) }
+    end)
+
+    new_prop = Enum.into(tmp_prop, %{})
+
+    fct_reduce = fn {_prop_name, value} -> value end
+
+    fct_to_call = fn namespace, name, new_prop ->
+      cloud_type = get_module_type(namespace)
+
+      cloud_name = name
+      |> reduce_to_value(%{})
+      |> extract_value
+      |> Atom.to_string
+      |> Macro.camelize
+
+      cloud_module = {Macro.camelize(cloud_name), cloud_type, new_prop}
+
+      new_state = Map.update(state, :modules, [], fn v -> [cloud_module | v] end)
+
+      evaluate_tree(tail, new_state)
+    end
+
+    # Check if error in properties
+    call_if_no_error(new_prop, fct_reduce, fct_to_call, [namespace, name, new_prop])
   end
 
   defp evaluate_tree([], state) do
@@ -388,10 +438,12 @@ defmodule CloudStackLang.Parser do
     {:ok, tokens, line}
   end
 
-  def parse_and_eval(string, debug, state_vars, state_fct) do
+  def parse_and_eval(string, debug, state_vars, state_fct, state_modules_fct) do
     state = %{
       :vars => state_vars,
-      :fct => state_fct
+      :fct => state_fct,
+      :modules_fct => state_modules_fct,
+      :modules => []
     }
 
     :cloud_stack_lang_lexer.string(String.to_charlist(string))

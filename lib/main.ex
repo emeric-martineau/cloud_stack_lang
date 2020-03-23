@@ -1,6 +1,8 @@
 defmodule CloudStackLang.Main do
   @version Mix.Project.config[:version]
 
+  alias CloudStackLang.Export.AwsYaml
+
   def main(args) do
     options = [
       switches: [
@@ -17,6 +19,8 @@ defmodule CloudStackLang.Main do
       ]
     ]
 
+    # TODO add output formal yaml or json
+
     {opts, _, _}= OptionParser.parse(args, options)
 
     debug = Keyword.get(opts, :debug, false)
@@ -27,29 +31,47 @@ defmodule CloudStackLang.Main do
     cond do
       app_version == true -> version()
       app_help == true -> help()
-      true -> run(debug, filename, CloudStackLang.Functions.Base.get_map())
+      true -> run(debug, filename, CloudStackLang.Functions.Base.get_map(), %{})
     end
   end
 
-  defp run(_debug, nil, _fct) do
+  defp run(_debug, nil, _fct, _modules_fct) do
     IO.puts(:stderr, "Error! You must provide a filename.")
     IO.puts(:stderr, "Please run 'csl --help' for more information.")
 
     System.halt(1)
   end
 
-  defp run(debug, filename, fct) do
+  defp run(debug, filename, fct, modules_fct) do
     IO.puts "Parsing file #{filename}"
 
     text = File.read!(filename)
 
-    ret = CloudStackLang.Parser.parse_and_eval(text, debug, %{}, fct)
+    ret = CloudStackLang.Parser.parse_and_eval(text, debug, %{}, fct, modules_fct)
 
     case ret do
       {:error, line, msg} ->
         IO.puts(:stderr, "Error in script '#{filename}' at line #{line}: #{msg}")
         System.halt(1)
-      _ -> System.halt(0)
+      map ->
+        modules = map[:modules]
+
+        modules
+        |> Enum.map(fn {module_name, module_type, module_properties} ->
+          mod = %{module_name =>
+            {:map,
+              %{
+                "Type" => {:string, module_type},
+                "Properties" =>
+                  {:map, module_properties}
+              }
+            }
+          }
+
+          AwsYaml.gen(mod) end)
+        |> IO.inspect
+
+        System.halt(0)
     end
   end
 

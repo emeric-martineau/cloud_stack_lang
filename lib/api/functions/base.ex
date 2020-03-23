@@ -18,14 +18,14 @@ defmodule CloudStackLang.Functions.Base do
     # The function must return {:ok, value} or {:error, msg}
     %{
       :base64 => %{
-        :decode => {:fct, [:string], :string, &Base.decode64/1},
-        :encode => {:fct, [:string], :string, &encode64/1},
+        :decode => {:fct, [:string], &decode64/1},
+        :encode => {:fct, [:string], &encode64/1},
       },
       :log => %{
-        :debug => {:fct, [:string], :void, &debug/1},
-        :info => {:fct, [:string], :void, &info/1},
-        :warning => {:fct, [:string], :void, &warning/1},
-        :error => {:fct, [:string], :void, &error/1},
+        :debug => {:fct, [:string], &debug/1},
+        :info => {:fct, [:string], &info/1},
+        :warning => {:fct, [:string], &warning/1},
+        :error => {:fct, [:string], &error/1},
       }
     }
   end
