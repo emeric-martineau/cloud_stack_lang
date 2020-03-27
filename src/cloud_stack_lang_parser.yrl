@@ -121,6 +121,7 @@ function_call -> name open_parenthesis close_parenthesis : {fct_call, ['$1'], []
 function_call -> name open_parenthesis exprs close_parenthesis : {fct_call, ['$1'], '$3'}.
 
 function_namespace -> name '.' name : lists:append(['$1'], ['$3']).
+function_namespace -> function_namespace '.' name : lists:append('$1', ['$3']).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

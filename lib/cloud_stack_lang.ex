@@ -115,7 +115,15 @@ defmodule CloudStackLang.Parser do
     case ret do
       {:error, msg} ->
         {_, line, _} = lhs
-        {:error, line, msg}
+
+        # Sorry, it's ugly code. But in case of error lhs can be {:add_op, {:interpolate_string, 2, '"trtrt"'}, {:int, 2, '3'}}
+        # or can be {:interpolate_string, 2, '"trtrt"'}
+        case line do
+          {_, l, _} ->
+            {:error, l, msg}
+          l -> {:error, l, msg}
+        end
+
       r -> r
     end
   end
