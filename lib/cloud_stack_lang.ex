@@ -97,250 +97,31 @@ defmodule CloudStackLang.Parser do
       }},
     b: {:int, 2}}, modules: [], modules_fct: %{} }
   """
-  alias CloudStackLang.Operator.Add
-  alias CloudStackLang.Operator.Div
-  alias CloudStackLang.Operator.Mul
-  alias CloudStackLang.Operator.Sub
-  alias CloudStackLang.Operator.Exp
-  alias CloudStackLang.Number
-  alias CloudStackLang.Map, as: MMap
-  alias CloudStackLang.Functions.Executor
+  alias CloudStackLang.Core.Util
+  alias CloudStackLang.Core.Reduce
 
-  defp get_module_type(namespace_call),
-    do:
-      namespace_call
-      |> Enum.map(fn {:name, _line, name} -> name end)
-      |> Enum.map(&List.to_string/1)
-      |> Enum.join("::")
+  defp save_module_in_state(namespace, name, properties, state, next_running_code) do
+    cloud_type = Util.get_module_type(namespace)
 
-  defp compute_operation(lhs, rhs, state, function) do
-    lvalue = reduce_to_value(lhs, state)
-    rvalue = reduce_to_value(rhs, state)
+    cloud_name =
+      name
+      |> Reduce.to_value(%{})
+      |> Util.extract_value()
+      |> Atom.to_string()
+      |> Macro.camelize()
 
-    ret = function.(lvalue, rvalue)
+    cloud_module = {Macro.camelize(cloud_name), cloud_type, properties}
 
-    case ret do
-      {:error, msg} ->
-        {_, line, _} = lhs
+    new_state =
+      state
+      |> Map.update(:modules, [], fn v -> [cloud_module | v] end)
+      |> Map.update(:in_module, true, fn _ -> false end)
 
-        # Sorry, it's ugly code. But in case of error lhs can be {:add_op, {:interpolate_string, 2, '"trtrt"'}, {:int, 2, '3'}}
-        # or can be {:interpolate_string, 2, '"trtrt"'}
-        case line do
-          {_, l, _} ->
-            {:error, l, msg}
-
-          l ->
-            {:error, l, msg}
-        end
-
-      r ->
-        r
-    end
-  end
-
-  defp call_if_no_error(items, fct_reduce, fct_to_call, args) do
-    elems = Enum.map(items, fct_reduce)
-
-    errors =
-      Enum.filter(elems, fn
-        {:error, _line, _msg} -> true
-        _ -> false
-      end)
-
-    case errors do
-      [] -> apply(fct_to_call, args)
-      [error | _tail] -> error
-    end
-  end
-
-  defp reduce_to_value({:simple_string, _line, value}, _state) do
-    s =
-      value
-      |> List.to_string()
-      |> CloudStackLang.String.clear()
-
-    {:string, s}
-  end
-
-  defp reduce_to_value({:interpolate_string, _line, value}, state) do
-    s =
-      value
-      |> List.to_string()
-      |> CloudStackLang.String.interpolate(state)
-      |> CloudStackLang.String.clear()
-
-    case s do
-      {:error, line, msg} -> {:error, line, msg}
-      v -> {:string, v}
-    end
-  end
-
-  defp reduce_to_value({:map, _line, value}, state) do
-    list_of_key_value_compute =
-      Enum.map(
-        value,
-        fn {:map_arg, key, expr} ->
-          # In case of module, we wan can use name to key for more readable
-          {_, k} =
-            case key do
-              {:name, _line, value} -> {:name, List.to_string(value)}
-              k -> reduce_to_value(k, state)
-            end
-
-          {k, reduce_to_value(expr, state)}
-        end
-      )
-
-    fct = fn data -> {:map, Map.new(data)} end
-    fct_reduce = fn {_, msg} -> msg end
-
-    call_if_no_error(list_of_key_value_compute, fct_reduce, fct, [list_of_key_value_compute])
-  end
-
-  defp reduce_to_value({:array, _line, value}, state) do
-    list_of_value = Enum.map(value, fn v -> reduce_to_value(v, state) end)
-
-    fct = fn data -> {:array, data} end
-    fct_reduce = fn msg -> msg end
-
-    call_if_no_error(list_of_value, fct_reduce, fct, [list_of_value])
-  end
-
-  defp reduce_to_value({:int, _line, value}, _state) do
-    v =
-      value
-      |> List.to_string()
-      |> String.replace("_", "")
-
-    {:int, String.to_integer(v)}
-  end
-
-  defp reduce_to_value({:float, _line, value}, _state) do
-    v =
-      value
-      |> List.to_string()
-      |> String.replace("_", "")
-
-    {:float, String.to_float(v)}
-  end
-
-  defp reduce_to_value({:hexa, _line, value}, _state) do
-    Number.from_hexa(value)
-  end
-
-  defp reduce_to_value({:octal, _line, value}, _state) do
-    Number.from_octal(value)
-  end
-
-  defp reduce_to_value({:atom, _line, atom_name}, _state) do
-    [_ | atom] = atom_name
-    {:atom, List.to_atom(atom)}
-  end
-
-  defp reduce_to_value({:build_empty_map, _open_map}, _state) do
-    {:map, %{}}
-  end
-
-  defp reduce_to_value({:build_map, open_map, assignments}, state) do
-    {:open_map, line} = open_map
-    reduce_to_value({:map, line, assignments}, state)
-  end
-
-  defp reduce_to_value({:build_empty_array, _open_map}, _state) do
-    {:array, []}
-  end
-
-  defp reduce_to_value({:build_array, open_map, assignments}, state) do
-    {:open_array, line} = open_map
-    reduce_to_value({:array, line, assignments}, state)
-  end
-
-  defp reduce_to_value({:name, line, var_name}, state) do
-    v_name = List.to_atom(var_name)
-
-    case state[:vars][v_name] do
-      nil -> {:error, line, "Variable name '#{var_name}' is not declared"}
-      v -> v
-    end
-  end
-
-  defp reduce_to_value({:add_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Add.reduce/2)
-  end
-
-  defp reduce_to_value({:sub_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Sub.reduce/2)
-  end
-
-  defp reduce_to_value({:mul_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Mul.reduce/2)
-  end
-
-  defp reduce_to_value({:div_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Div.reduce/2)
-  end
-
-  defp reduce_to_value({:exp_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Exp.reduce/2)
-  end
-
-  defp reduce_to_value({:map_get, var_name, access_key_list}, state) do
-    # Get variable value
-    local_state = reduce_to_value(var_name, state)
-
-    check_map_variable(local_state, access_key_list, state)
-  end
-
-  defp reduce_to_value({:parenthesis, expr}, state) do
-    reduce_to_value(expr, state)
-  end
-
-  defp reduce_to_value({:fct_call, namespace, args}, state) do
-    news_args = Enum.map(args, fn a -> reduce_to_value(a, state) end)
-
-    fct_reduce = fn data -> data end
-
-    {:name, line, _name} = List.last(namespace)
-
-    call_if_no_error(news_args, fct_reduce, &call_function/4, [namespace, news_args, line, state])
-  end
-
-  defp call_function(namespace_call, news_args, line, state) do
-    return_value = Executor.run(namespace_call, news_args, state)
-
-    case return_value do
-      {:error, msg} -> {:error, line, msg}
-      _ -> return_value
-    end
-  end
-
-  defp check_map_variable({:error, line, msg}, _access_key_list, _state) do
-    {:error, line, msg}
-  end
-
-  defp check_map_variable(local_state, access_key_list, state) do
-    # Parse all arguments
-    key_list =
-      Enum.map(access_key_list, fn v ->
-        {_, line, _} = v
-
-        case reduce_to_value(v, state) do
-          {:error, line, msg} -> {:error, line, msg}
-          {type, value} -> {type, line, value}
-        end
-      end)
-
-    fct_reduce = fn data -> data end
-
-    call_if_no_error(key_list, fct_reduce, &MMap.reduce/2, [key_list, local_state])
-  end
-
-  defp extract_value({_type, value}) do
-    value
+    evaluate_tree(next_running_code, new_state)
   end
 
   defp evaluate_tree([{:assign, {:name, line, variable_name}, variable_expr_value} | tail], state) do
-    value = reduce_to_value(variable_expr_value, state)
+    value = Reduce.to_value(variable_expr_value, state)
     key = List.to_atom(variable_name)
 
     case value do
@@ -358,7 +139,7 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([{:fct_call, namespace, args} | tail], state) do
-    return_value = reduce_to_value({:fct_call, namespace, args}, state)
+    return_value = Reduce.to_value({:fct_call, namespace, args}, state)
 
     case return_value do
       {:error, line, msg} -> {:error, line, msg}
@@ -367,41 +148,32 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([{:module, namespace, name, map_properties} | tail], state) do
+    module_state = Map.update(state, :in_module, true, fn _ -> false end)
+
     {:build_module_map, _, properties} = map_properties
 
     tmp_prop =
       Enum.map(properties, fn {:module_map_arg, {:name, _line, prop_name}, value} ->
-        p_name =
+        name =
           prop_name
           |> List.to_string()
           |> Macro.camelize()
 
-        {p_name, reduce_to_value(value, state)}
+        {name, Reduce.to_value(value, module_state)}
       end)
 
     new_prop = Enum.into(tmp_prop, %{})
 
     fct_reduce = fn {_prop_name, value} -> value end
 
-    fct_to_call = fn namespace, name, new_prop ->
-      cloud_type = get_module_type(namespace)
-
-      cloud_name =
-        name
-        |> reduce_to_value(%{})
-        |> extract_value
-        |> Atom.to_string()
-        |> Macro.camelize()
-
-      cloud_module = {Macro.camelize(cloud_name), cloud_type, new_prop}
-
-      new_state = Map.update(state, :modules, [], fn v -> [cloud_module | v] end)
-
-      evaluate_tree(tail, new_state)
-    end
-
     # Check if error in properties
-    call_if_no_error(new_prop, fct_reduce, fct_to_call, [namespace, name, new_prop])
+    Util.call_if_no_error(new_prop, fct_reduce, &save_module_in_state/5, [
+      namespace,
+      name,
+      new_prop,
+      module_state,
+      tail
+    ])
   end
 
   defp evaluate_tree([], state) do
@@ -448,17 +220,6 @@ defmodule CloudStackLang.Parser do
     |> process_tree(debug, state)
   end
 
-  defp debug_parse({:ok, tokens, line}, true, _state) do
-    IO.puts("Stopped at line #{line}\n")
-    IO.puts("Tokens:")
-    IO.inspect(tokens, pretty: true)
-    {:ok, tokens, line}
-  end
-
-  defp debug_parse({:ok, tokens, line}, false, _state) do
-    {:ok, tokens, line}
-  end
-
   def parse_and_eval(string, debug, state_vars, state_fct, state_modules_fct) do
     state = %{
       :vars => state_vars,
@@ -468,7 +229,7 @@ defmodule CloudStackLang.Parser do
     }
 
     :cloud_stack_lang_lexer.string(String.to_charlist(string))
-    |> debug_parse(debug, state)
+    |> Util.debug_parse(debug, state)
     |> process_parse(debug, state)
   end
 end
