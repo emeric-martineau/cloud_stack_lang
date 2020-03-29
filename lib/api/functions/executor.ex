@@ -34,7 +34,8 @@ defmodule CloudStackLang.Functions.Executor do
     call(namespace_call, args, fct_entry)
   end
 
-  defp call(namespace_call, _args, nil), do: {:error, "Function '#{get_function_name(namespace_call)}' not found"}
+  defp call(namespace_call, _args, nil),
+    do: {:error, "Function '#{get_function_name(namespace_call)}' not found"}
 
   defp call(namespace_call, args, {:manager, fct_ptr}) do
     apply(fct_ptr, [namespace_call, args])
@@ -42,8 +43,14 @@ defmodule CloudStackLang.Functions.Executor do
 
   defp call(namespace_call, args, {:fct, args_type, fct_ptr}) do
     cond do
-      length(args) == length(args_type) -> exec(namespace_call, args, {:fct, args_type, fct_ptr})
-      true -> {:error, "Bad arguments for '#{get_function_name(namespace_call)}'. Waiting #{length(args_type)}, given #{length(args)}"}
+      length(args) == length(args_type) ->
+        exec(namespace_call, args, {:fct, args_type, fct_ptr})
+
+      true ->
+        {:error,
+         "Bad arguments for '#{get_function_name(namespace_call)}'. Waiting #{length(args_type)}, given #{
+           length(args)
+         }"}
     end
   end
 
@@ -57,10 +64,21 @@ defmodule CloudStackLang.Functions.Executor do
     end
   end
 
-  defp check_args_type(namespace_call, [waiting_type | tail_waiting], [given_type | tail_given], index) do
+  defp check_args_type(
+         namespace_call,
+         [waiting_type | tail_waiting],
+         [given_type | tail_given],
+         index
+       ) do
     case waiting_type == given_type do
-      true -> check_args_type(namespace_call, tail_waiting, tail_given, index + 1)
-      _ -> {:error, "Bad type argument for '#{get_function_name(namespace_call)}'. The argument n°#{index} waiting '#{waiting_type}' and given '#{given_type}'"}
+      true ->
+        check_args_type(namespace_call, tail_waiting, tail_given, index + 1)
+
+      _ ->
+        {:error,
+         "Bad type argument for '#{get_function_name(namespace_call)}'. The argument n°#{index} waiting '#{
+           waiting_type
+         }' and given '#{given_type}'"}
     end
   end
 
@@ -80,8 +98,9 @@ defmodule CloudStackLang.Functions.Executor do
     get_function_entry(tail, functions[List.to_atom(fct_name)])
   end
 
-  defp get_function_name(namespace_call), do:
-    namespace_call
-    |> Enum.map(fn {:name, _line, name} -> name end)
-    |> Enum.join(".")
+  defp get_function_name(namespace_call),
+    do:
+      namespace_call
+      |> Enum.map(fn {:name, _line, name} -> name end)
+      |> Enum.join(".")
 end

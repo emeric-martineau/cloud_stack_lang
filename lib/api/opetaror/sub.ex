@@ -34,6 +34,7 @@ defmodule CloudStackLang.Operator.Sub do
   def reduce({:float, lvalue}, {:int, rvalue}) do
     {:float, lvalue - rvalue}
   end
+
   def reduce({:int, lvalue}, {:float, rvalue}) do
     {:float, lvalue - rvalue}
   end
@@ -43,6 +44,6 @@ defmodule CloudStackLang.Operator.Sub do
   end
 
   def reduce(lvalue, rvalue) do
-    {:error, "'-' operator not supported for #{inspect lvalue}, #{inspect rvalue}"}
+    {:error, "'-' operator not supported for #{inspect(lvalue)}, #{inspect(rvalue)}"}
   end
 end

@@ -19,9 +19,10 @@ defmodule CloudStackLang.Export.AwsYaml do
   use CloudStackLang.Export.Yaml
 
   defp generate({:atom, data}, indent) do
-    ref = data
-    |> Atom.to_string
-    |> Macro.camelize
+    ref =
+      data
+      |> Atom.to_string()
+      |> Macro.camelize()
 
     "!Ref #{ref}"
   end

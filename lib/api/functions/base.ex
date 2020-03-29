@@ -19,13 +19,13 @@ defmodule CloudStackLang.Functions.Base do
     %{
       :base64 => %{
         :decode => {:fct, [:string], &decode64/1},
-        :encode => {:fct, [:string], &encode64/1},
+        :encode => {:fct, [:string], &encode64/1}
       },
       :log => %{
         :debug => {:fct, [:string], &debug/1},
         :info => {:fct, [:string], &info/1},
         :warning => {:fct, [:string], &warning/1},
-        :error => {:fct, [:string], &error/1},
+        :error => {:fct, [:string], &error/1}
       }
     }
   end

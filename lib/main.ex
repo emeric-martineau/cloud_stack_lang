@@ -1,5 +1,5 @@
 defmodule CloudStackLang.Main do
-  @version Mix.Project.config[:version]
+  @version Mix.Project.config()[:version]
 
   alias CloudStackLang.Export.AwsYaml
 
@@ -21,7 +21,7 @@ defmodule CloudStackLang.Main do
 
     # TODO add output formal yaml or json
 
-    {opts, _, _}= OptionParser.parse(args, options)
+    {opts, _, _} = OptionParser.parse(args, options)
 
     debug = Keyword.get(opts, :debug, false)
     filename = Keyword.get(opts, :file)
@@ -43,7 +43,7 @@ defmodule CloudStackLang.Main do
   end
 
   defp run(debug, filename, fct, modules_fct) do
-    IO.puts "Parsing file #{filename}"
+    IO.puts("Parsing file #{filename}")
 
     text = File.read!(filename)
 
@@ -53,36 +53,36 @@ defmodule CloudStackLang.Main do
       {:error, line, msg} ->
         IO.puts(:stderr, "Error in script '#{filename}' at line #{line}: #{msg}")
         System.halt(1)
+
       map ->
         modules = map[:modules]
 
         modules
         |> Enum.map(fn {module_name, module_type, module_properties} ->
-          mod = %{module_name =>
-            {:map,
-              %{
-                "Type" => {:string, module_type},
-                "Properties" =>
-                  {:map, module_properties}
-              }
-            }
+          mod = %{
+            module_name =>
+              {:map,
+               %{
+                 "Type" => {:string, module_type},
+                 "Properties" => {:map, module_properties}
+               }}
           }
 
-          AwsYaml.gen(mod) end)
-        |> IO.inspect
+          AwsYaml.gen(mod)
+        end)
+        |> IO.inspect()
 
         System.halt(0)
     end
   end
 
   defp version() do
-     IO.puts("Cloud Stack Lang version #{@version}")
-     IO.puts("Copyright 2020 - Emeric MARTINEAU")
+    IO.puts("Cloud Stack Lang version #{@version}")
+    IO.puts("Copyright 2020 - Emeric MARTINEAU")
   end
 
   defp help() do
-    IO.puts(
-    """
+    IO.puts("""
     Cloud Stack Lang is a new way to use native cloud IaaC like CloudFormation for AWS.
 
     Usage: csl
@@ -93,7 +93,6 @@ defmodule CloudStackLang.Main do
     csl -f FILE     - Read FILE and output in console the result
 
     The --help and --version options can be given instead of a task for usage and versioning information.
-    """
-    )
+    """)
   end
 end

@@ -50,6 +50,6 @@ defmodule CloudStackLang.Operator.Div do
   end
 
   def reduce(lvalue, rvalue) do
-    {:error, "'/' operator not supported for #{inspect lvalue}, #{inspect rvalue}"}
+    {:error, "'/' operator not supported for #{inspect(lvalue)}, #{inspect(rvalue)}"}
   end
 end

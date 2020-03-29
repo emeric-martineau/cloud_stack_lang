@@ -11,19 +11,21 @@ defmodule CloudStackLang.Export.Yaml do
       defp generate({:map, data}, indent) do
         next_indent = "#{indent}  "
 
-        map = data
-              |> Enum.map(fn {key, value} ->
-          first_part = case value do
-            {:map, _} -> "#{indent}#{key}:\n"
-            {:array, _} -> "#{indent}#{key}:\n"
-            _ -> "#{indent}#{key}: "
-          end
+        map =
+          data
+          |> Enum.map(fn {key, value} ->
+            first_part =
+              case value do
+                {:map, _} -> "#{indent}#{key}:\n"
+                {:array, _} -> "#{indent}#{key}:\n"
+                _ -> "#{indent}#{key}: "
+              end
 
-          second_part = generate(value, next_indent)
+            second_part = generate(value, next_indent)
 
-          "#{first_part}#{second_part}"
-        end)
-              |> Enum.join("\n")
+            "#{first_part}#{second_part}"
+          end)
+          |> Enum.join("\n")
       end
 
       defp generate({:array, data}, indent) do
@@ -32,11 +34,12 @@ defmodule CloudStackLang.Export.Yaml do
 
         data
         |> Enum.map(fn value ->
-          first_part = case value do
-            {:map, _} -> "#{first_indent}\n"
-            {:array, _} -> "#{first_indent}\n"
-            _ -> "#{first_indent}"
-          end
+          first_part =
+            case value do
+              {:map, _} -> "#{first_indent}\n"
+              {:array, _} -> "#{first_indent}\n"
+              _ -> "#{first_indent}"
+            end
 
           second_part = generate(value, next_indent)
 

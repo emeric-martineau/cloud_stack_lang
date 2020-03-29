@@ -106,11 +106,12 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Map, as: MMap
   alias CloudStackLang.Functions.Executor
 
-  defp get_module_type(namespace_call), do:
-    namespace_call
-    |> Enum.map(fn {:name, _line, name} -> name end)
-    |> Enum.map(&List.to_string/1)
-    |> Enum.join("::")
+  defp get_module_type(namespace_call),
+    do:
+      namespace_call
+      |> Enum.map(fn {:name, _line, name} -> name end)
+      |> Enum.map(&List.to_string/1)
+      |> Enum.join("::")
 
   defp compute_operation(lhs, rhs, state, function) do
     lvalue = reduce_to_value(lhs, state)
@@ -127,40 +128,46 @@ defmodule CloudStackLang.Parser do
         case line do
           {_, l, _} ->
             {:error, l, msg}
-          l -> {:error, l, msg}
+
+          l ->
+            {:error, l, msg}
         end
 
-      r -> r
+      r ->
+        r
     end
   end
 
   defp call_if_no_error(items, fct_reduce, fct_to_call, args) do
     elems = Enum.map(items, fct_reduce)
 
-    errors = Enum.filter(elems, fn
-      {:error, _line, _msg} -> true
-      _ -> false
-    end)
+    errors =
+      Enum.filter(elems, fn
+        {:error, _line, _msg} -> true
+        _ -> false
+      end)
 
     case errors do
       [] -> apply(fct_to_call, args)
-      [ error | _tail ] -> error
+      [error | _tail] -> error
     end
   end
 
   defp reduce_to_value({:simple_string, _line, value}, _state) do
-    s = value
-    |> List.to_string
-    |> CloudStackLang.String.clear
+    s =
+      value
+      |> List.to_string()
+      |> CloudStackLang.String.clear()
 
     {:string, s}
   end
 
   defp reduce_to_value({:interpolate_string, _line, value}, state) do
-    s = value
-    |> List.to_string
-    |> CloudStackLang.String.interpolate(state)
-    |> CloudStackLang.String.clear
+    s =
+      value
+      |> List.to_string()
+      |> CloudStackLang.String.interpolate(state)
+      |> CloudStackLang.String.clear()
 
     case s do
       {:error, line, msg} -> {:error, line, msg}
@@ -169,17 +176,20 @@ defmodule CloudStackLang.Parser do
   end
 
   defp reduce_to_value({:map, _line, value}, state) do
-    list_of_key_value_compute = Enum.map(value,
-      fn {:map_arg, key, expr} ->
-        # In case of module, we wan can use name to key for more readable
-        {_, k} =
-          case key do
-            {:name, _line, value} -> {:name, List.to_string(value)}
-            k -> reduce_to_value(k, state)
-          end
+    list_of_key_value_compute =
+      Enum.map(
+        value,
+        fn {:map_arg, key, expr} ->
+          # In case of module, we wan can use name to key for more readable
+          {_, k} =
+            case key do
+              {:name, _line, value} -> {:name, List.to_string(value)}
+              k -> reduce_to_value(k, state)
+            end
 
-        {k, reduce_to_value(expr, state)}
-      end)
+          {k, reduce_to_value(expr, state)}
+        end
+      )
 
     fct = fn data -> {:map, Map.new(data)} end
     fct_reduce = fn {_, msg} -> msg end
@@ -197,17 +207,19 @@ defmodule CloudStackLang.Parser do
   end
 
   defp reduce_to_value({:int, _line, value}, _state) do
-    v = value
-    |> List.to_string
-    |> String.replace("_", "")
+    v =
+      value
+      |> List.to_string()
+      |> String.replace("_", "")
 
     {:int, String.to_integer(v)}
   end
 
   defp reduce_to_value({:float, _line, value}, _state) do
-    v = value
-    |> List.to_string
-    |> String.replace("_", "")
+    v =
+      value
+      |> List.to_string()
+      |> String.replace("_", "")
 
     {:float, String.to_float(v)}
   end
@@ -308,13 +320,15 @@ defmodule CloudStackLang.Parser do
 
   defp check_map_variable(local_state, access_key_list, state) do
     # Parse all arguments
-    key_list = Enum.map(access_key_list, fn v ->
-      {_, line, _} = v
-      case reduce_to_value(v, state) do
-        {:error, line, msg} -> {:error, line, msg}
-        {type, value} -> {type, line, value}
-      end
-    end)
+    key_list =
+      Enum.map(access_key_list, fn v ->
+        {_, line, _} = v
+
+        case reduce_to_value(v, state) do
+          {:error, line, msg} -> {:error, line, msg}
+          {type, value} -> {type, line, value}
+        end
+      end)
 
     fct_reduce = fn data -> data end
 
@@ -330,8 +344,12 @@ defmodule CloudStackLang.Parser do
     key = List.to_atom(variable_name)
 
     case value do
-      {:error, line, msg} -> {:error, line, msg}
-      {:void} -> {:error, line, "Error, a function return void value. Cannot be assigned to variable."}
+      {:error, line, msg} ->
+        {:error, line, msg}
+
+      {:void} ->
+        {:error, line, "Error, a function return void value. Cannot be assigned to variable."}
+
       value ->
         new_state = Map.update(state, :vars, %{}, fn v -> Map.merge(v, %{key => value}) end)
 
@@ -346,18 +364,20 @@ defmodule CloudStackLang.Parser do
       {:error, line, msg} -> {:error, line, msg}
       _ -> evaluate_tree(tail, state)
     end
-
   end
 
   defp evaluate_tree([{:module, namespace, name, map_properties} | tail], state) do
-    {:build_module_map, _, properties} =  map_properties
-    tmp_prop = Enum.map(properties, fn {:module_map_arg, {:name, _line, prop_name}, value} ->
-      p_name = prop_name
-      |> List.to_string
-      |> Macro.camelize
+    {:build_module_map, _, properties} = map_properties
 
-      {p_name, reduce_to_value(value, state) }
-    end)
+    tmp_prop =
+      Enum.map(properties, fn {:module_map_arg, {:name, _line, prop_name}, value} ->
+        p_name =
+          prop_name
+          |> List.to_string()
+          |> Macro.camelize()
+
+        {p_name, reduce_to_value(value, state)}
+      end)
 
     new_prop = Enum.into(tmp_prop, %{})
 
@@ -366,11 +386,12 @@ defmodule CloudStackLang.Parser do
     fct_to_call = fn namespace, name, new_prop ->
       cloud_type = get_module_type(namespace)
 
-      cloud_name = name
-      |> reduce_to_value(%{})
-      |> extract_value
-      |> Atom.to_string
-      |> Macro.camelize
+      cloud_name =
+        name
+        |> reduce_to_value(%{})
+        |> extract_value
+        |> Atom.to_string()
+        |> Macro.camelize()
 
       cloud_module = {Macro.camelize(cloud_name), cloud_type, new_prop}
 
@@ -392,8 +413,8 @@ defmodule CloudStackLang.Parser do
   end
 
   defp process_tree({:error, err}, true, _state) do
-    IO.puts "\nParse error"
-    IO.inspect err
+    IO.puts("\nParse error")
+    IO.inspect(err)
 
     err
   end
@@ -403,13 +424,13 @@ defmodule CloudStackLang.Parser do
   end
 
   defp process_tree({:ok, tree}, true, state) do
-    IO.puts "\nParse tree"
-    IO.inspect tree, pretty: true
+    IO.puts("\nParse tree")
+    IO.inspect(tree, pretty: true)
 
     result = evaluate_tree(tree, state)
 
-    IO.puts "\nFinal state"
-    IO.inspect result, pretty: true
+    IO.puts("\nFinal state")
+    IO.inspect(result, pretty: true)
 
     result
   end
@@ -428,9 +449,9 @@ defmodule CloudStackLang.Parser do
   end
 
   defp debug_parse({:ok, tokens, line}, true, _state) do
-    IO.puts "Stopped at line #{line}\n"
-    IO.puts "Tokens:"
-    IO.inspect tokens, pretty: true
+    IO.puts("Stopped at line #{line}\n")
+    IO.puts("Tokens:")
+    IO.inspect(tokens, pretty: true)
     {:ok, tokens, line}
   end
 

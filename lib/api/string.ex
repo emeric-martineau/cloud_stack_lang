@@ -31,7 +31,7 @@ defmodule CloudStackLang.String do
 
   def clear(value) do
     value
-    |> String.slice(1..String.length(value) - 2)
+    |> String.slice(1..(String.length(value) - 2))
     |> String.replace("\\n", "\n")
     |> String.replace("\\r", "\r")
     |> String.replace("\\t", "\t")
@@ -70,7 +70,7 @@ defmodule CloudStackLang.String do
   end
 
   defp replace_var([{0, 0}], string, state) do
-    new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, string, [return: :index, capture: :first])
+    new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, string, return: :index, capture: :first)
 
     replace_var(new_pos, string, state)
   end
@@ -83,11 +83,13 @@ defmodule CloudStackLang.String do
     value_to_replace = get(state, key)
 
     case value_to_replace do
-      {:error, line, msg} -> {:error, line, msg}
+      {:error, line, msg} ->
+        {:error, line, msg}
+
       v ->
         end_string = String.slice(string, start + len, String.length(string))
 
-        new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, end_string, [return: :index, capture: :first])
+        new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, end_string, return: :index, capture: :first)
 
         start_string <> v <> replace_var(new_pos, end_string, state)
     end
@@ -98,7 +100,14 @@ defmodule CloudStackLang.String do
   end
 
   defp get(state, key) do
-    value = CloudStackLang.Parser.parse_and_eval("result=" <> key, false, state[:vars], state[:fct], state[:modules_fct])
+    value =
+      CloudStackLang.Parser.parse_and_eval(
+        "result=" <> key,
+        false,
+        state[:vars],
+        state[:fct],
+        state[:modules_fct]
+      )
 
     case value do
       {:error, line, msg} -> {:error, line, msg}
