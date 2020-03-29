@@ -211,8 +211,8 @@ defmodule CloudStackLang.Parser do
     evaluate_tree(tree, state)
   end
 
-  defp process_parse({:error, result}, _debug, _state) do
-    {:error, result}
+  defp process_parse({:error, line, result}, _debug, _state) do
+    {:error, line, result}
   end
 
   defp process_parse({:ok, tokens, _line}, debug, state) do

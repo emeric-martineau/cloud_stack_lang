@@ -306,4 +306,24 @@ defmodule CloudStackLang.Parser.FullTest do
     assert parse_and_eval(text, false, %{}, %{}, %{}) ==
              {:error, 2, "Index '5' is out of range (3 items in array)"}
   end
+
+  test "check var is resolve in map key" do
+    text = ~S"""
+    var0 = "my_key"
+    var1 = {
+      var0 = "my_value"
+    }
+    """
+
+    var_result = %{
+      var0: {:string, "my_key"},
+      var1: {:map, %{
+        "my_key" => {:string, "my_value"}
+              }}
+    }
+
+    state = parse_and_eval(text, false, %{}, %{}, %{})
+
+    assert state[:vars] == var_result
+  end
 end

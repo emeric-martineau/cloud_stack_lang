@@ -37,6 +37,19 @@ defmodule CloudStackLang.Core.Util do
     {:ok, tokens, line}
   end
 
+  # {:error, {3, :cloud_stack_lang_lexer, {:illegal, '"my_value\n}\n'}}, 5}
+  # -> {:erro, line, msg}
+  def debug_parse({:error, lexer_msg, line}, false, _state) do
+    {line, _, error} = lexer_msg
+
+    msg = case error do
+      {:illegal, m} -> "Illegal instruction: '#{m}'"
+      e -> e
+    end
+
+    {:error, line, msg}
+  end
+
   def extract_value({_type, value}) do
     value
   end
