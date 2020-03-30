@@ -55,22 +55,8 @@ defmodule CloudStackLang.Main do
         System.halt(1)
 
       map ->
-        modules = map[:modules]
-
-        modules
-        |> Enum.map(fn {module_name, module_type, module_properties} ->
-          mod = %{
-            module_name =>
-              {:map,
-               %{
-                 "Type" => {:string, module_type},
-                 "Properties" => {:map, module_properties}
-               }}
-          }
-
-          AwsYaml.gen(mod)
-        end)
-        |> IO.inspect()
+        AwsYaml.gen(map[:modules])
+        |> IO.puts
 
         System.halt(0)
     end

@@ -38,11 +38,10 @@ defmodule CloudStackLang.Core.Reduce do
       case key do
         {:name, _line, value} ->
           case state[:in_module] do
-            # we are in module, we don't resole variable name
-            true -> {:name, List.to_string(value)}
-            _ -> to_value(key, state)
+              # we are in module, we don't resole variable name
+              true -> {:name, List.to_string(value)}
+              _ -> to_value(key, state)
           end
-
         k -> to_value(k, state)
       end
 

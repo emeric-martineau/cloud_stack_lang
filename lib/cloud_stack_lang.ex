@@ -115,7 +115,7 @@ defmodule CloudStackLang.Parser do
     new_state =
       state
       |> Map.update(:modules, [], fn v -> [cloud_module | v] end)
-      |> Map.update(:in_module, true, fn _ -> false end)
+      |> Map.merge(%{:in_module => false})
 
     evaluate_tree(next_running_code, new_state)
   end
@@ -148,7 +148,7 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([{:module, namespace, name, map_properties} | tail], state) do
-    module_state = Map.update(state, :in_module, true, fn _ -> false end)
+    module_state = Map.merge(state, %{:in_module => true})
 
     {:build_module_map, _, properties} = map_properties
 

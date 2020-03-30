@@ -4,10 +4,6 @@ defmodule CloudStackLang.Export.Yaml do
   """
   defmacro __using__(_opts) do
     quote do
-      def gen(data) do
-        generate({:map, data}, "")
-      end
-
       defp generate({:map, data}, indent) do
         next_indent = "#{indent}  "
 
