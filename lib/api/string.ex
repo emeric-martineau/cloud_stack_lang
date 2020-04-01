@@ -24,19 +24,23 @@ defmodule CloudStackLang.String do
 
       iex> CloudStackLang.String.clear("'hello\\\"world'")
       "hello\"world"
+
+      iex> CloudStackLang.String.clear("'hello\\\\ slashes'")
+      "hello\\ slashes"
   """
   def clear({:error, line, msg}) do
     {:error, line, msg}
   end
 
   def clear(value) do
-    value
-    |> String.slice(1..(String.length(value) - 2))
+    backslash_clear_value = Regex.replace(~r/\\([^nrts])/, value, "\\1")
+
+    backslash_clear_value
+    |> String.slice(1..(String.length(backslash_clear_value) - 2))
     |> String.replace("\\n", "\n")
     |> String.replace("\\r", "\r")
     |> String.replace("\\t", "\t")
     |> String.replace("\\s", "\s")
-    |> String.replace("\\", "")
   end
 
   @doc ~S"""
