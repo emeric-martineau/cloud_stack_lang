@@ -1,13 +1,13 @@
 my_instance_type = "t2.micro"
 
-AWS::EC2::Instance(:my_instance) {
+AWS::Resource::EC2::Instance(:my_instance) {
   availability_zone = "eu-west-1a"
   image_id = "ami-0713f98de93617bb4"
   instance_type = my_instance_type
   security_groups = :ssh_security_group
 }
 
-AWS::EC2::SecurityGroup(:ssh_security_group) {
+AWS::Resource::EC2::SecurityGroup(:ssh_security_group) {
   group_description = "SSH and HTTP"
   security_group_ingress = [
     {

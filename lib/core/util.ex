@@ -4,12 +4,11 @@ defmodule CloudStackLang.Core.Util do
   """
   alias CloudStackLang.Functions.Executor
 
-  def get_module_type(namespace_call),
+  def convert_list_of_name_to_string(list),
     do:
-      namespace_call
+      list
       |> Enum.map(fn {:name, _line, name} -> name end)
       |> Enum.map(&List.to_string/1)
-      |> Enum.join("::")
 
   def call_if_no_error(items, fct_reduce, fct_to_call, args) do
     elems = Enum.map(items, fct_reduce)
@@ -39,7 +38,7 @@ defmodule CloudStackLang.Core.Util do
 
   # {:error, {3, :cloud_stack_lang_lexer, {:illegal, '"my_value\n}\n'}}, 5}
   # -> {:erro, line, msg}
-  def debug_parse({:error, lexer_msg, line}, false, _state) do
+  def debug_parse({:error, lexer_msg, _line}, false, _state) do
     {line, _, error} = lexer_msg
 
     msg = case error do

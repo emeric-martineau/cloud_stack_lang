@@ -47,7 +47,12 @@ defmodule CloudStackLang.Export.Yaml do
       defp generate({:string, data}, indent) do
         # Todo escape if :, {, }, [, ], ,, &, *, #, ?, |, -, <, >, =, !, %, @, \
         # or end with space
-        data
+        data = String.replace(data, "\\", "\\\\")
+
+        case String.match?(data, ~r/(^[:{}[\],&*#?|\-<>=!%@\s])|(\s$)/) do
+          true -> "\"#{data}\""
+          false -> data
+        end
       end
 
       defp generate({:int, data}, indent) do

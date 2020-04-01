@@ -19,7 +19,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     }
 
     module_result = [
-      {"MyInstance", "AWS::EC2::Instance",
+      {"MyInstance", ["AWS", "EC2", "Instance"],
        %{
          "AvailabilityZone" => {:string, "eu-west-1a"},
          "ImageId" => {:string, "ami-0713f98de93617bb4"},

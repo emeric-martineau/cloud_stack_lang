@@ -101,7 +101,7 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Core.Reduce
 
   defp save_module_in_state(namespace, name, properties, state, next_running_code) do
-    cloud_type = Util.get_module_type(namespace)
+    cloud_type = Util.convert_list_of_name_to_string(namespace)
 
     cloud_name =
       name
@@ -115,7 +115,7 @@ defmodule CloudStackLang.Parser do
     new_state =
       state
       |> Map.update(:modules, [], fn v -> [cloud_module | v] end)
-      |> Map.merge(%{:in_module => false})
+      |> Map.update(:in_module, false, fn _ -> false end)
 
     evaluate_tree(next_running_code, new_state)
   end
@@ -148,7 +148,8 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([{:module, namespace, name, map_properties} | tail], state) do
-    module_state = Map.merge(state, %{:in_module => true})
+    module_state = state
+    |> Map.update(:in_module, true, fn _ -> true end)
 
     {:build_module_map, _, properties} = map_properties
 
