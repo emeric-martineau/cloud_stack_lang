@@ -80,4 +80,7 @@ defmodule CloudStackLang.Export.AwsYaml do
 
     "!Ref #{ref}"
   end
+
+  # TODO add AWS function support
+  # TODO add other thing
 end
