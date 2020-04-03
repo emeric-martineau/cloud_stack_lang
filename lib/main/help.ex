@@ -4,7 +4,7 @@ defmodule CloudStackLang.Main.Help do
   """
   def display(options) do
     switches =
-      Keyword.get(options, :switches, [])
+      Keyword.get(options, :strict, [])
       |> Enum.map(fn {key, _type} -> convert_atom_to_string(key) end)
 
     aliases =

@@ -6,7 +6,7 @@ defmodule CloudStackLang.Main do
 
   def main(args) do
     options = [
-      switches: [
+      strict: [
         debug: :boolean,
         version: :boolean,
         help: :boolean,
@@ -22,31 +22,43 @@ defmodule CloudStackLang.Main do
 
     # TODO add output formal yaml or json
 
-    {opts, files, _} = OptionParser.parse(args, options)
-
-    # TODO fail if unknow options
-
-    debug = Keyword.get(opts, :debug, false)
-    app_version = Keyword.get(opts, :version)
-    app_help = Keyword.get(opts, :help, false)
-    output_format = Keyword.get(opts, :output, "%dirname/%filename.%format")
-
     ret =
-      cond do
-        app_version == true ->
-          version()
-
-        app_help == true ->
-          Help.display(options)
-
-        true ->
-          Parse.parse_files(debug, files, output_format)
-      end
+      OptionParser.parse(args, options)
+      |> check_unknow_options(options)
 
     case ret do
       true -> System.halt(0)
       _ -> System.halt(1)
     end
+  end
+
+  defp check_unknow_options({opts, files, []}, options) do
+    debug = Keyword.get(opts, :debug, false)
+    app_version = Keyword.get(opts, :version)
+    app_help = Keyword.get(opts, :help, false)
+    output_format = Keyword.get(opts, :output, "%dirname/%filename.%format")
+
+    cond do
+      app_version == true ->
+        version()
+
+      app_help == true ->
+        Help.display(options)
+
+      true ->
+        Parse.parse_files(debug, files, output_format)
+    end
+  end
+
+  defp check_unknow_options({_opts, _files, unknow_options}, _options) do
+    opts =
+      unknow_options
+      |> Enum.map(fn {switch, _value} -> switch end)
+      |> Enum.join(" ")
+
+    IO.puts(:stderr, "unknown option: #{opts}")
+
+    1
   end
 
   defp version() do
