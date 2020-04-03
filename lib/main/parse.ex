@@ -1,4 +1,4 @@
-defmodule CloudStackLang.File.Parse do
+defmodule CloudStackLang.Main.Parse do
   @moduledoc ~S"""
     This module contain some functions for write file when it's parser.
   """

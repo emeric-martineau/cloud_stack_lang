@@ -1,7 +1,8 @@
 defmodule CloudStackLang.Main do
   @version Mix.Project.config()[:version]
 
-  alias CloudStackLang.File.Parse
+  alias CloudStackLang.Main.Parse
+  alias CloudStackLang.Main.Help
 
   def main(args) do
     options = [
@@ -30,43 +31,28 @@ defmodule CloudStackLang.Main do
     app_help = Keyword.get(opts, :help, false)
     output_format = Keyword.get(opts, :output, "%dirname/%filename.%format")
 
-    cond do
-      app_version == true ->
-        version()
+    ret =
+      cond do
+        app_version == true ->
+          version()
 
-      app_help == true ->
-        help(options)
+        app_help == true ->
+          Help.display(options)
 
-      true ->
-        case Parse.parse_files(debug, files, output_format) do
-          true -> System.halt(0)
-          _ -> System.halt(1)
-        end
+        true ->
+          Parse.parse_files(debug, files, output_format)
+      end
+
+    case ret do
+      true -> System.halt(0)
+      _ -> System.halt(1)
     end
   end
 
   defp version() do
     IO.puts("Cloud Stack Lang version #{@version}")
     IO.puts("Copyright 2020 - Emeric MARTINEAU")
-  end
 
-  defp help(options) do
-    # TODO display list of option
-
-    IO.puts("""
-    Cloud Stack Lang is a new way to use native cloud IaaC like CloudFormation for AWS.
-
-    Usage: csl <TODO> file(s)
-
-    Examples:
-
-    csl FILE       - Read FILE and output in file in same directory with default extention
-    csl -d FILE    - Read FILE and output in file in same directory with default extention
-                     with debug information
-    csl -f '%dirname/%filename.%extension.%format' FILE
-                   - Read FILE and output in file in same directory with specified name
-
-    The --help and --version options can be given instead of a task for usage and versioning information.
-    """)
+    0
   end
 end
