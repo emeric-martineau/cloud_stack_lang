@@ -317,9 +317,11 @@ defmodule CloudStackLang.Parser.FullTest do
 
     var_result = %{
       var0: {:string, "my_key"},
-      var1: {:map, %{
-        "my_key" => {:string, "my_value"}
-              }}
+      var1:
+        {:map,
+         %{
+           "my_key" => {:string, "my_value"}
+         }}
     }
 
     state = parse_and_eval(text, false, %{}, %{}, %{})

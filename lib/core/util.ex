@@ -41,10 +41,11 @@ defmodule CloudStackLang.Core.Util do
   def debug_parse({:error, lexer_msg, _line}, false, _state) do
     {line, _, error} = lexer_msg
 
-    msg = case error do
-      {:illegal, m} -> "Illegal instruction: '#{m}'"
-      e -> e
-    end
+    msg =
+      case error do
+        {:illegal, m} -> "Illegal instruction: '#{m}'"
+        e -> e
+      end
 
     {:error, line, msg}
   end

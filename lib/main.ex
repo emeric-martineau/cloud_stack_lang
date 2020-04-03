@@ -45,13 +45,18 @@ defmodule CloudStackLang.Main do
   end
 
   defp parse_files(debug, files, output_format) do
-    not_found_files = files
-    |> Enum.filter(fn f -> not File.exists?(f) end)
+    not_found_files =
+      files
+      |> Enum.filter(fn f -> not File.exists?(f) end)
 
     case not_found_files do
       [] ->
-        Enum.each(files, fn f -> run(debug, output_format, f, CloudStackLang.Functions.Base.get_map(), %{}) end)
+        Enum.each(files, fn f ->
+          run(debug, output_format, f, CloudStackLang.Functions.Base.get_map(), %{})
+        end)
+
         System.halt(0)
+
       missing_files ->
         Enum.each(missing_files, fn f -> IO.puts(:stderr, "File #{f} not found!") end)
         System.halt(1)
@@ -80,8 +85,15 @@ defmodule CloudStackLang.Main do
 
         case File.write(new_filename, content) do
           {:error, msg} ->
-            IO.puts(:stderr, "Error when write file '#{new_filename}' (for '#{filename}'): #{get_write_error(msg)}")
+            IO.puts(
+              :stderr,
+              "Error when write file '#{new_filename}' (for '#{filename}'): #{
+                get_write_error(msg)
+              }"
+            )
+
             System.halt(1)
+
           _ ->
             IO.puts("Writting file '#{new_filename}' done.")
         end

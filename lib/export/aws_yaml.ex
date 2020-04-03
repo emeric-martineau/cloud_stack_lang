@@ -35,35 +35,40 @@ defmodule CloudStackLang.Export.AwsYaml do
   use CloudStackLang.Export.Yaml
 
   def gen(modules) do
-    aws_module = modules
-    |> Enum.filter(fn {_module_name, namespace, _module_properties} ->
-      [prefixe_ns | _tail] = namespace
-      prefixe_ns == "AWS"
-    end)
+    aws_module =
+      modules
+      |> Enum.filter(fn {_module_name, namespace, _module_properties} ->
+        [prefixe_ns | _tail] = namespace
+        prefixe_ns == "AWS"
+      end)
 
-    aws_resources = aws_module
-    |> Enum.filter(fn {_module_name, namespace, _module_properties} ->
-      [_prefixe_ns, domain | _tail] = namespace
-      domain == "Resource"
-    end)
+    aws_resources =
+      aws_module
+      |> Enum.filter(fn {_module_name, namespace, _module_properties} ->
+        [_prefixe_ns, domain | _tail] = namespace
+        domain == "Resource"
+      end)
 
-    yaml_aws_resources = aws_resources
-    |> Enum.map(fn {resource_name, namespace, resource_properties} ->
-      [prefixe_ns, _domain | tail] = namespace
+    yaml_aws_resources =
+      aws_resources
+      |> Enum.map(fn {resource_name, namespace, resource_properties} ->
+        [prefixe_ns, _domain | tail] = namespace
 
-      # Remove "Resource" and generate type
-      resource_type = [prefixe_ns | tail]
-      |> Enum.join("::")
+        # Remove "Resource" and generate type
+        resource_type =
+          [prefixe_ns | tail]
+          |> Enum.join("::")
 
-      {:map, %{
-        resource_name =>
-          {:map,
-          %{
-            "Type" => {:string, resource_type},
-            "Properties" => {:map, resource_properties}
-          }}
-      }}
-    end)
+        {:map,
+         %{
+           resource_name =>
+             {:map,
+              %{
+                "Type" => {:string, resource_type},
+                "Properties" => {:map, resource_properties}
+              }}
+         }}
+      end)
 
     data = %{
       "Resources" => {:array, yaml_aws_resources}

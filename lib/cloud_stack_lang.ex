@@ -148,8 +148,9 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([{:module, namespace, name, map_properties} | tail], state) do
-    module_state = state
-    |> Map.update(:in_module, true, fn _ -> true end)
+    module_state =
+      state
+      |> Map.update(:in_module, true, fn _ -> true end)
 
     {:build_module_map, _, properties} = map_properties
 
