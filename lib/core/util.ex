@@ -1,14 +1,14 @@
 defmodule CloudStackLang.Core.Util do
   @moduledoc ~S"""
     This module contain some functions for core process.
+
+    iex> CloudStackLang.Core.Util.call_if_no_error([1, 2, 3], fn x -> x end, fn x -> x end, ["MyArgs"])
+    "MyArgs"
+
+    iex> CloudStackLang.Core.Util.call_if_no_error([1, 2, {:error, 0, "MyError"}], fn x -> x end, fn x -> x end, ["MyArgs"])
+    {:error, 0, "MyError"}
   """
   alias CloudStackLang.Functions.Executor
-
-  def convert_list_of_name_to_string(list),
-    do:
-      list
-      |> Enum.map(fn {:name, _line, name} -> name end)
-      |> Enum.map(&List.to_string/1)
 
   def call_if_no_error(items, fct_reduce, fct_to_call, args) do
     elems = Enum.map(items, fct_reduce)

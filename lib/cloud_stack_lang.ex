@@ -99,9 +99,12 @@ defmodule CloudStackLang.Parser do
   """
   alias CloudStackLang.Core.Util
   alias CloudStackLang.Core.Reduce
+  alias CloudStackLang.Core.Module
 
   defp save_module_in_state(namespace, name, properties, state, next_running_code) do
-    cloud_type = Util.convert_list_of_name_to_string(namespace)
+    cloud_type = Module.convert_list_of_name_to_string(namespace)
+
+    new_properties = Module.convert_all_map_key_to_camelcase({:map, properties})
 
     cloud_name =
       name
@@ -110,7 +113,7 @@ defmodule CloudStackLang.Parser do
       |> Atom.to_string()
       |> Macro.camelize()
 
-    cloud_module = {Macro.camelize(cloud_name), cloud_type, properties}
+    cloud_module = {cloud_name, cloud_type, new_properties}
 
     new_state =
       state
@@ -159,7 +162,6 @@ defmodule CloudStackLang.Parser do
         name =
           prop_name
           |> List.to_string()
-          |> Macro.camelize()
 
         {name, Reduce.to_value(value, module_state)}
       end)
