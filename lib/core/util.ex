@@ -7,6 +7,9 @@ defmodule CloudStackLang.Core.Util do
 
     iex> CloudStackLang.Core.Util.call_if_no_error([1, 2, {:error, 0, "MyError"}], fn x -> x end, fn x -> x end, ["MyArgs"])
     {:error, 0, "MyError"}
+
+    iex> CloudStackLang.Core.Util.merge_list_of_map([%{"a" => 1}, %{"b" => 1}, %{"c" => 1}])
+    %{"a" => 1, "b" => 1, "c" => 1}
   """
   alias CloudStackLang.Functions.Executor
 
@@ -61,5 +64,18 @@ defmodule CloudStackLang.Core.Util do
       {:error, msg} -> {:error, line, msg}
       _ -> return_value
     end
+  end
+
+  def merge_list_of_map([]) do
+    %{}
+  end
+
+  def merge_list_of_map([last_item]) do
+    last_item
+  end
+
+  def merge_list_of_map([item | tail]) do
+    item
+    |> Map.merge(merge_list_of_map(tail))
   end
 end

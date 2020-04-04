@@ -20,12 +20,13 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
 
     module_result = [
       {"MyInstance", ["AWS", "EC2", "Instance"],
-      {:map, %{
-         "AvailabilityZone" => {:string, "eu-west-1a"},
-         "ImageId" => {:string, "ami-0713f98de93617bb4"},
-         "InstanceType" => {:string, "t2.micro"},
-         "SecurityGroups" => {:atom, :ssh_security_group}
-       }}}
+       {:map,
+        %{
+          "AvailabilityZone" => {:string, "eu-west-1a"},
+          "ImageId" => {:string, "ami-0713f98de93617bb4"},
+          "InstanceType" => {:string, "t2.micro"},
+          "SecurityGroups" => {:atom, :ssh_security_group}
+        }}}
     ]
 
     fct = %{}

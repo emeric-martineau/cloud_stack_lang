@@ -108,10 +108,7 @@ defmodule CloudStackLang.Parser do
 
     cloud_name =
       name
-      |> Reduce.to_value(%{})
-      |> Util.extract_value()
-      |> Atom.to_string()
-      |> Macro.camelize()
+      |> Module.convert_module_name(fn x -> Reduce.to_value(x, %{}) end)
 
     cloud_module = {cloud_name, cloud_type, new_properties}
 

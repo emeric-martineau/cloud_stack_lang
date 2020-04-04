@@ -52,6 +52,19 @@ defmodule CloudStackLang.Main.Parse do
     false
   end
 
+  defp manage_parse_and_eval_return(
+         {line, :cloud_stack_lang_parser, msg},
+         filename,
+         _output_format
+       ) do
+    # TODO write better message
+    # actually for this {28, :cloud_stack_lang_parser, ['syntax error before: ', 'close_parenthesis']}
+    # we wrire "Error in script 'xxx.csl' at line 28: syntax error before: close_parenthesis"
+    IO.puts(:stderr, "Error in script '#{filename}' at line #{line}: #{msg}")
+
+    false
+  end
+
   # TODO extension come from AwsYaml
   # TODO support output_format '-' for stdin
   # TODO support directory file and recursive mode -> generate only one file in this case

@@ -33,23 +33,49 @@ defmodule CloudStackLang.Export.AwsYaml do
 
   """
   use CloudStackLang.Export.Yaml
+  alias CloudStackLang.Core.Util
 
   def gen(modules) do
-    aws_module =
+    aws_module = filter_aws(modules)
+
+    yaml_aws_resources =
+      aws_module
+      |> filter_by_type("Resource")
+      |> generate_aws_resources_map
+
+    #    AWS :: Stack
+    yaml_aws_global =
+      aws_module
+      |> filter_by_type("Stack")
+      |> generate_aws_global_map
+
+    data =
+      yaml_aws_global
+      |> Map.merge(%{
+        "Resources" => {:map, yaml_aws_resources}
+      })
+
+    generate({:map, data}, "")
+  end
+
+  defp filter_aws(modules),
+    do:
       modules
       |> Enum.filter(fn {_module_name, namespace, _module_properties} ->
         [prefixe_ns | _tail] = namespace
         prefixe_ns == "AWS"
       end)
 
-    aws_resources =
+  defp filter_by_type(aws_module, type),
+    do:
       aws_module
       |> Enum.filter(fn {_module_name, namespace, _module_properties} ->
         [_prefixe_ns, domain | _tail] = namespace
-        domain == "Resource"
+        domain == type
       end)
 
-    yaml_aws_resources =
+  defp generate_aws_resources_map(aws_resources),
+    do:
       aws_resources
       |> Enum.map(fn {resource_name, namespace, resource_properties} ->
         [prefixe_ns, _domain | tail] = namespace
@@ -70,12 +96,13 @@ defmodule CloudStackLang.Export.AwsYaml do
       end)
       |> Map.new()
 
-    data = %{
-      "Resources" => {:map, yaml_aws_resources}
-    }
-
-    generate({:map, data}, "")
-  end
+  defp generate_aws_global_map(aws_resources),
+    do:
+      aws_resources
+      |> Enum.map(fn {_resource_name, _namespace, {:map, resource_properties}} ->
+        resource_properties
+      end)
+      |> Util.merge_list_of_map()
 
   defp generate({:atom, data}, _indent) do
     ref =

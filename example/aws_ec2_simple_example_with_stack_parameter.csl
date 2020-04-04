@@ -1,0 +1,52 @@
+my_instance_type = "t2.micro"
+
+AWS::Resource::EC2::Instance(:my_instance) {
+  availability_zone = "eu-west-1a"
+  image_id = "ami-0713f98de93617bb4"
+  instance_type = my_instance_type
+  security_groups = [:ssh_security_group]
+}
+
+AWS::Resource::EC2::SecurityGroup(:ssh_security_group) {
+  group_description = "SSH and HTTP"
+  security_group_ingress = [
+    {
+      cidr_ip = "0.0.0.0/0"
+      from_port = 22
+      ip_protocol = "tcp"
+      to_port = 22
+    }
+    {
+      cidr_ip = "0.0.0.0/0"
+      from_port = 80
+      ip_protocol = "tcp"
+      to_port = 80
+    }
+  ]
+}
+
+// You can have multiple AWS::Stack that will be merge into single
+AWS::Stack(:void) {
+  // Convert to
+  // Metadata:
+  //   Instances:
+  //     Description: "Information about the instances"
+  //   Databases:
+  //     Description: "Information about the databases"
+  metadata = {
+    instances = "Information about the instances"
+    databases = "Information about the databases"
+  }
+  // Convert to Transform: [MyMacro, AWS::Serverless]
+  transform = [
+    "MyMacro"
+    "AWS::Serverless"
+  ]
+}
+
+AWS::Stack(:void) {
+  // Convert to AWSTemplateFormatVersion: "2010-09-09"
+  version = "2010-09-09-2"
+  // Convert to Description: "my description"
+  description = "my description-2"
+}
