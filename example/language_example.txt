@@ -34,7 +34,7 @@ string3 = "This
 is
 multiline
 "
-// In string you can put \n \t \r \\ \s
+// In string you can put \n \t \r \\ \s, but only parse in double quote string
 string4 = "\nr\tg\\g\s\f"
 
 // We have map.

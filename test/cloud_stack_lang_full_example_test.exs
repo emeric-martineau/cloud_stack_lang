@@ -35,6 +35,7 @@ defmodule CloudStackLang.Parser.FullTest do
     string6 = 1.0 + "hello"
     string7 = "hello" + 1.0
     string8 = "hello" + " wolrd!"
+    string9 = '\\ \n \r \s \' \t \g'
 
     // Float
     float1 = 1.3
@@ -106,6 +107,7 @@ defmodule CloudStackLang.Parser.FullTest do
       string6: {:string, "1.0hello"},
       string7: {:string, "hello1.0"},
       string8: {:string, "hello wolrd!"},
+      string9: {:string, "\\ \\n \\r \\s ' \\t \\g"},
       float1: {:float, 1.3},
       float2: {:float, 2.6},
       float3: {:float, 2.6},

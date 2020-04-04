@@ -7,19 +7,19 @@ defmodule CloudStackLang.String do
   Returns the list cleared to simple or double quote and '\\', '\n', '\r', '\t', '\"', "\'".
 
   ## Examples
-      iex> CloudStackLang.String.clear("\'hello world\'")
+      iex> CloudStackLang.String.clear("'hello world'")
       "hello world"
 
-      iex> CloudStackLang.String.clear("\"hello\\nworld\"")
+      iex> CloudStackLang.String.clear("'hello\\nworld'")
       "hello\nworld"
 
-      iex> CloudStackLang.String.clear("\"hello\\rworld\"")
+      iex> CloudStackLang.String.clear("'hello\\rworld'")
       "hello\rworld"
 
-      iex> CloudStackLang.String.clear("\'hello\\tworld\'")
+      iex> CloudStackLang.String.clear("'hello\\tworld'")
       "hello\tworld"
 
-      iex> CloudStackLang.String.clear("\"hello\\\'world\"")
+      iex> CloudStackLang.String.clear("'hello\\\'world'")
       "hello\'world"
 
       iex> CloudStackLang.String.clear("'hello\\\"world'")
@@ -27,10 +27,32 @@ defmodule CloudStackLang.String do
 
       iex> CloudStackLang.String.clear("'hello\\\\ slashes'")
       "hello\\ slashes"
+
+      iex> CloudStackLang.String.clear_only_escape_quote("'hello world'")
+      "hello world"
+
+      iex> CloudStackLang.String.clear_only_escape_quote("'hello \\' world'")
+      "hello ' world"
+
+      iex> CloudStackLang.String.clear_only_escape_quote("'hello \\n world'")
+      "hello \\n world"
+
+      iex> CloudStackLang.String.clear_only_escape_quote("'hello \\\\ world'")
+      "hello \\ world"
   """
-  def clear({:error, msg}) do
-    {:error, msg}
+
+  def clear_only_escape_quote({:error, msg}), do: {:error, msg}
+
+  def clear_only_escape_quote(value) do
+    quote_char = String.at(value, 0)
+
+    value
+    |> String.slice(1..(String.length(value) - 2))
+    |> String.replace("\\#{quote_char}", "#{quote_char}")
+    |> String.replace("\\\\", "\\")
   end
+
+  def clear({:error, msg}), do: {:error, msg}
 
   def clear(value) do
     backslash_clear_value = Regex.replace(~r/\\([^nrts])/, value, "\\1")

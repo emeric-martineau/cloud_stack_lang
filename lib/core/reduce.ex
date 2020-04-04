@@ -79,7 +79,7 @@ defmodule CloudStackLang.Core.Reduce do
     s =
       value
       |> List.to_string()
-      |> CloudStackLang.String.clear()
+      |> CloudStackLang.String.clear_only_escape_quote()
 
     {:string, s}
   end
