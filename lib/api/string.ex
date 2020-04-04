@@ -28,8 +28,8 @@ defmodule CloudStackLang.String do
       iex> CloudStackLang.String.clear("'hello\\\\ slashes'")
       "hello\\ slashes"
   """
-  def clear({:error, line, msg}) do
-    {:error, line, msg}
+  def clear({:error, msg}) do
+    {:error, msg}
   end
 
   def clear(value) do
@@ -64,7 +64,7 @@ defmodule CloudStackLang.String do
       "'<map>'"
 
       iex> CloudStackLang.String.interpolate("'${var1}'", %{:vars => %{:e => 3}})
-      {:error, 1, "Variable name 'var1' is not declared"}
+      {:error, "Variable name 'var1' is not declared"}
 
       iex> CloudStackLang.String.interpolate("'${var1[1][0]}'", %{:vars => %{:var1 => {:array, [{:int, 1}, {:array, [ {:int, 3}]}]}}})
       "'3'"
@@ -87,8 +87,8 @@ defmodule CloudStackLang.String do
     value_to_replace = get(state, key)
 
     case value_to_replace do
-      {:error, line, msg} ->
-        {:error, line, msg}
+      {:error, msg} ->
+        {:error, msg}
 
       v ->
         end_string = String.slice(string, start + len, String.length(string))
@@ -114,7 +114,7 @@ defmodule CloudStackLang.String do
       )
 
     case value do
-      {:error, line, msg} -> {:error, line, msg}
+      {:error, _line, msg} -> {:error, msg}
       v -> unwrap(v[:vars][:result])
     end
   end
