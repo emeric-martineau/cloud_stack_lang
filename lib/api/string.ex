@@ -4,6 +4,33 @@ defmodule CloudStackLang.String do
   """
 
   @doc ~S"""
+  Returns the list cleared to simple.
+
+  ## Examples
+      iex> CloudStackLang.String.clear_only_escape_quote("'hello world'")
+      "hello world"
+
+      iex> CloudStackLang.String.clear_only_escape_quote("'hello \\' world'")
+      "hello ' world"
+
+      iex> CloudStackLang.String.clear_only_escape_quote("'hello \\n world'")
+      "hello \\n world"
+
+      iex> CloudStackLang.String.clear_only_escape_quote("'hello \\\\ world'")
+      "hello \\ world"
+  """
+  def clear_only_escape_quote({:error, msg}), do: {:error, msg}
+
+  def clear_only_escape_quote(value) do
+    quote_char = String.at(value, 0)
+
+    value
+    |> String.slice(1..(String.length(value) - 2))
+    |> String.replace("\\#{quote_char}", "#{quote_char}")
+    |> String.replace("\\\\", "\\")
+  end
+
+  @doc ~S"""
   Returns the list cleared to simple or double quote and '\\', '\n', '\r', '\t', '\"', "\'".
 
   ## Examples
@@ -27,42 +54,19 @@ defmodule CloudStackLang.String do
 
       iex> CloudStackLang.String.clear("'hello\\\\ slashes'")
       "hello\\ slashes"
-
-      iex> CloudStackLang.String.clear_only_escape_quote("'hello world'")
-      "hello world"
-
-      iex> CloudStackLang.String.clear_only_escape_quote("'hello \\' world'")
-      "hello ' world"
-
-      iex> CloudStackLang.String.clear_only_escape_quote("'hello \\n world'")
-      "hello \\n world"
-
-      iex> CloudStackLang.String.clear_only_escape_quote("'hello \\\\ world'")
-      "hello \\ world"
   """
-
-  def clear_only_escape_quote({:error, msg}), do: {:error, msg}
-
-  def clear_only_escape_quote(value) do
-    quote_char = String.at(value, 0)
-
-    value
-    |> String.slice(1..(String.length(value) - 2))
-    |> String.replace("\\#{quote_char}", "#{quote_char}")
-    |> String.replace("\\\\", "\\")
-  end
-
   def clear({:error, msg}), do: {:error, msg}
 
   def clear(value) do
-    backslash_clear_value = Regex.replace(~r/\\([^nrts])/, value, "\\1")
+    new_value =
+      value
+      |> String.slice(1..(String.length(value) - 2))
+      |> String.replace("\\n", "\n")
+      |> String.replace("\\r", "\r")
+      |> String.replace("\\t", "\t")
+      |> String.replace("\\s", "\s")
 
-    backslash_clear_value
-    |> String.slice(1..(String.length(backslash_clear_value) - 2))
-    |> String.replace("\\n", "\n")
-    |> String.replace("\\r", "\r")
-    |> String.replace("\\t", "\t")
-    |> String.replace("\\s", "\s")
+    Regex.replace(~r/\\([^$])/, new_value, "\\1")
   end
 
   @doc ~S"""
@@ -90,6 +94,9 @@ defmodule CloudStackLang.String do
 
       iex> CloudStackLang.String.interpolate("'${var1[1][0]}'", %{:vars => %{:var1 => {:array, [{:int, 1}, {:array, [ {:int, 3}]}]}}})
       "'3'"
+
+      iex> CloudStackLang.String.interpolate("'\\${var1}${var1}\\${var1}'", %{:vars => %{:var1 => {:string, "2"}}})
+      "'${var1}2${var1}'"
   """
   def interpolate(value, state) do
     replace_var([{0, 0}], value, state)
@@ -102,28 +109,47 @@ defmodule CloudStackLang.String do
   end
 
   defp replace_var([{start, len}], string, state) do
-    start_string = String.slice(string, 0, start)
-    # Skip ${ }
-    key = String.slice(string, start + 2, len - 3)
-
-    value_to_replace = get(state, key)
-
-    case value_to_replace do
-      {:error, msg} ->
-        {:error, msg}
-
-      v ->
-        end_string = String.slice(string, start + len, String.length(string))
-
-        new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, end_string, return: :index, capture: :first)
-
-        start_string <> v <> replace_var(new_pos, end_string, state)
-    end
+    check_if_has_previous_backslash([{start, len}], string)
+    |> substitute([{start, len}], string, state)
   end
 
   defp replace_var(nil, string, _state) do
     string
   end
+
+  defp substitute(false, [{start, len}], string, state) do
+    start_string = String.slice(string, 0, start)
+    # Skip ${ }
+    key = String.slice(string, start + 2, len - 3)
+
+    case get(state, key) do
+      {:error, msg} ->
+        {:error, msg}
+
+      v ->
+        create_string_and_continue_parse(start_string, v, [{start, len}], string, state)
+    end
+  end
+
+  defp substitute(true, [{start, len}], string, state) do
+    start_string = String.slice(string, 0, start - 1)
+    middle_string  = String.slice(string, start, len)
+
+    create_string_and_continue_parse(start_string, middle_string, [{start, len}], string, state)
+  end
+
+  defp create_string_and_continue_parse(start_string, middle_string, [{start, len}], string, state) do
+    end_string = String.slice(string, start + len, String.length(string))
+
+    new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, end_string, return: :index, capture: :first)
+
+    start_string <> middle_string <> replace_var(new_pos, end_string, state)
+  end
+
+  defp check_if_has_previous_backslash([{0, _len}], _string), do: false
+
+  defp check_if_has_previous_backslash([{start, _len}], string),
+       do: String.at(string, start - 1) == "\\"
 
   defp get(state, key) do
     value =

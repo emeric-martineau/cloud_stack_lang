@@ -37,6 +37,9 @@ multiline
 // In string you can put \n \t \r \\ \s, but only parse in double quote string
 string4 = "\nr\tg\\g\s\f"
 
+// In double quote string, if you don't want parse ${xxx} use this
+string5 = "\${int5}"
+
 // We have map.
 // Empty map
 map1 = { }

@@ -88,8 +88,8 @@ defmodule CloudStackLang.Core.Reduce do
     s =
       value
       |> List.to_string()
-      |> CloudStackLang.String.interpolate(state)
       |> CloudStackLang.String.clear()
+      |> CloudStackLang.String.interpolate(state)
 
     case s do
       {:error, msg} -> {:error, line, msg}
