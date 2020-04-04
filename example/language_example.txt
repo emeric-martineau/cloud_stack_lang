@@ -1,0 +1,73 @@
+/*
+ * Welcome to Cloud Stack Lang.
+ * This file show you full syntaxe.
+ */
+
+// We declare a variables that is integer.
+int1 = 0
+int2 = 1_000_000
+// Integer can also write into hexadecimal notation...
+int3 = 0xddd
+// ... or in octal notation, usefull for unix right management.
+int4 = 0o777
+
+// We can also declare float.
+float1 = 1.7
+float1 = 1.7e5
+
+// Integer or float can be negative
+int5 = -300
+
+// We can make great operation.
+op1 = (int1 + int2 - (int3 * int4)) / (int5^2)
+
+// We have atom (thank to Erlang and Elixir lang)
+atom1 = :toto
+
+// String is also cool !
+// String without interpolation and support concatenation !
+string1 = 'This is great string.' + ' I put \' in this'
+// String with interpolation put variable value
+string2 = "Value of g: ${int5}"
+// String with simple quote or double quote can be multi line
+string3 = "This
+is
+multiline
+"
+// In string you can put \n \t \r \\ \s
+string4 = "\nr\tg\\g\s\f"
+
+// We have map.
+// Empty map
+map1 = { }
+// Map with multi key type support
+key1 = "a"
+map2 = {
+  key1 = 1
+  "b" = 'great'
+  'c' = {
+    'e' = int1
+  }
+  :d = [
+    1
+    2
+    3
+  ]
+}
+// Sorry, map don't support number to key.
+// Note, that you don't put ',' between item. A space char (space, tab, newline) is the rule.
+
+// To get value of map.
+val1 = map2["b"]
+
+// We have array.
+// Empty array
+array1 = [ ]
+array2 = [
+  1 + 1
+  1 + 3
+]
+array3 = [
+  {"a" = "b" }
+  'eeeee'
+]
