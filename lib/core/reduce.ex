@@ -52,9 +52,8 @@ defmodule CloudStackLang.Core.Reduce do
     lvalue = to_value(lhs, state)
     rvalue = to_value(rhs, state)
 
-    ret = function.(lvalue, rvalue)
-
-    case ret do
+    function.(lvalue, rvalue)
+    |> case do
       {:error, msg} ->
         {_, line, _} = lhs
 
@@ -83,13 +82,11 @@ defmodule CloudStackLang.Core.Reduce do
   end
 
   def to_value({:interpolate_string, line, value}, state) do
-    s =
-      value
-      |> List.to_string()
-      |> CloudStackLang.String.clear()
-      |> CloudStackLang.String.interpolate(state)
-
-    case s do
+    value
+    |> List.to_string()
+    |> CloudStackLang.String.clear()
+    |> CloudStackLang.String.interpolate(state)
+    |> case do
       {:error, msg} -> {:error, line, msg}
       v -> {:string, v}
     end
@@ -173,12 +170,11 @@ defmodule CloudStackLang.Core.Reduce do
 
   def to_value({:exp_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Exp.reduce/2)
 
-  def to_value({:map_get, var_name, access_key_list}, state) do
+  def to_value({:map_get, var_name, access_key_list}, state),
     # Get variable value
-    local_state = to_value(var_name, state)
-
-    check_map_variable(local_state, access_key_list, state)
-  end
+    do:
+      to_value(var_name, state)
+      |> check_map_variable(access_key_list, state)
 
   def to_value({:parenthesis, expr}, state), do: to_value(expr, state)
 

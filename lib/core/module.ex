@@ -16,12 +16,12 @@ defmodule CloudStackLang.Core.Module do
       |> Enum.map(fn {:name, _line, name} -> name end)
       |> Enum.map(&List.to_string/1)
 
-  def convert_all_map_key_to_camelcase(item) when is_map(item) do
-    item
-    |> Map.new(fn {key, value} ->
-      {Macro.camelize(key), convert_all_map_key_to_camelcase(value)}
-    end)
-  end
+  def convert_all_map_key_to_camelcase(item) when is_map(item),
+    do:
+      item
+      |> Map.new(fn {key, value} ->
+        {Macro.camelize(key), convert_all_map_key_to_camelcase(value)}
+      end)
 
   def convert_all_map_key_to_camelcase({:array, item}) do
     new_item =

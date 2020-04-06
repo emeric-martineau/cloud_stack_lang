@@ -14,15 +14,12 @@ defmodule CloudStackLang.Core.Util do
   alias CloudStackLang.Functions.Executor
 
   def call_if_no_error(items, fct_reduce, fct_to_call, args) do
-    elems = Enum.map(items, fct_reduce)
-
-    errors =
-      Enum.filter(elems, fn
-        {:error, _line, _msg} -> true
-        _ -> false
-      end)
-
-    case errors do
+    Enum.map(items, fct_reduce)
+    |> Enum.filter(fn
+      {:error, _line, _msg} -> true
+      _ -> false
+    end)
+    |> case do
       [] -> apply(fct_to_call, args)
       [error | _tail] -> error
     end
@@ -54,11 +51,10 @@ defmodule CloudStackLang.Core.Util do
   def extract_value({_type, value}), do: value
 
   def call_function(namespace_call, news_args, line, state) do
-    return_value = Executor.run(namespace_call, news_args, state)
-
-    case return_value do
+    Executor.run(namespace_call, news_args, state)
+    |> case do
       {:error, msg} -> {:error, line, msg}
-      _ -> return_value
+      v -> v
     end
   end
 

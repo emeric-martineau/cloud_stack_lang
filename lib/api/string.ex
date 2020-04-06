@@ -106,19 +106,19 @@ defmodule CloudStackLang.String do
     replace_var(new_pos, string, state)
   end
 
-  defp replace_var([{start, len}], string, state) do
-    check_if_has_previous_backslash([{start, len}], string)
-    |> substitute([{start, len}], string, state)
-  end
+  defp replace_var([{start, len}], string, state),
+    do:
+      check_if_has_previous_backslash([{start, len}], string)
+      |> substitute([{start, len}], string, state)
 
   defp replace_var(nil, string, _state), do: string
 
   defp substitute(false, [{start, len}], string, state) do
     start_string = String.slice(string, 0, start)
     # Skip ${ }
-    key = String.slice(string, start + 2, len - 3)
-
-    case get(state, key) do
+    String.slice(string, start + 2, len - 3)
+    |> get(state)
+    |> case do
       {:error, msg} ->
         {:error, msg}
 
@@ -153,17 +153,15 @@ defmodule CloudStackLang.String do
   defp check_if_has_previous_backslash([{start, _len}], string),
     do: String.at(string, start - 1) == "\\"
 
-  defp get(state, key) do
-    value =
-      CloudStackLang.Parser.parse_and_eval(
-        "result=" <> key,
-        false,
-        state[:vars],
-        state[:fct],
-        state[:modules_fct]
-      )
-
-    case value do
+  defp get(key, state) do
+    CloudStackLang.Parser.parse_and_eval(
+      "result=" <> key,
+      false,
+      state[:vars],
+      state[:fct],
+      state[:modules_fct]
+    )
+    |> case do
       {:error, _line, msg} -> {:error, msg}
       v -> unwrap(v[:vars][:result])
     end

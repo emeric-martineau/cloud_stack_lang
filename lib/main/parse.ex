@@ -11,19 +11,18 @@ defmodule CloudStackLang.Main.Parse do
     false
   end
 
-  def parse_files(debug, files, output_format),
-    do:
-      files
-      |> Enum.filter(fn f -> not File.exists?(f) end)
-      |> manage_not_found_file(files, debug, output_format)
+  def parse_files(debug, files, output_format) do
+    files
+    |> Enum.filter(fn f -> not File.exists?(f) end)
+    |> case do
+      [] ->
+        run_all_files(true, files, debug, output_format)
 
-  defp manage_not_found_file([], files, debug, output_format),
-    do: run_all_files(true, files, debug, output_format)
+      missing_files ->
+        Enum.each(missing_files, fn f -> IO.puts(:stderr, "File #{f} not found!") end)
 
-  defp manage_not_found_file(missing_files, _files, _debug, _output_format) do
-    Enum.each(missing_files, fn f -> IO.puts(:stderr, "File #{f} not found!") end)
-
-    false
+        false
+    end
   end
 
   defp run_all_files(true, [current_file | tail], debug, output_format) do

@@ -121,10 +121,8 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([{:assign, {:name, line, variable_name}, variable_expr_value} | tail], state) do
-    value = Reduce.to_value(variable_expr_value, state)
-    key = List.to_atom(variable_name)
-
-    case value do
+    Reduce.to_value(variable_expr_value, state)
+    |> case do
       {:error, line, msg} ->
         {:error, line, msg}
 
@@ -132,6 +130,8 @@ defmodule CloudStackLang.Parser do
         {:error, line, "Error, a function return void value. Cannot be assigned to variable."}
 
       value ->
+        key = List.to_atom(variable_name)
+
         new_state = Map.update(state, :vars, %{}, fn v -> Map.merge(v, %{key => value}) end)
 
         evaluate_tree(tail, new_state)
@@ -139,9 +139,8 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([{:fct_call, namespace, args} | tail], state) do
-    return_value = Reduce.to_value({:fct_call, namespace, args}, state)
-
-    case return_value do
+    Reduce.to_value({:fct_call, namespace, args}, state)
+    |> case do
       {:error, line, msg} -> {:error, line, msg}
       _ -> evaluate_tree(tail, state)
     end

@@ -39,18 +39,16 @@ defmodule CloudStackLang.Functions.Executor do
 
   defp call(namespace_call, args, {:manager, fct_ptr}), do: apply(fct_ptr, [namespace_call, args])
 
-  defp call(namespace_call, args, {:fct, args_type, fct_ptr}) do
-    cond do
-      length(args) == length(args_type) ->
-        exec(namespace_call, args, {:fct, args_type, fct_ptr})
+  defp call(namespace_call, args, {:fct, args_type, fct_ptr})
+       when length(args) == length(args_type),
+       do: exec(namespace_call, args, {:fct, args_type, fct_ptr})
 
-      true ->
-        {:error,
-         "Bad arguments for '#{get_function_name(namespace_call)}'. Waiting #{length(args_type)}, given #{
-           length(args)
-         }"}
-    end
-  end
+  defp call(namespace_call, args, {:fct, args_type, _fct_ptr}),
+    do:
+      {:error,
+       "Bad arguments for '#{get_function_name(namespace_call)}'. Waiting #{length(args_type)}, given #{
+         length(args)
+       }"}
 
   defp exec(namespace_call, args, {:fct, args_type, fct_ptr}) do
     given_args_type = Enum.map(args, fn {type, _value} -> type end)
@@ -67,18 +65,21 @@ defmodule CloudStackLang.Functions.Executor do
          [waiting_type | tail_waiting],
          [given_type | tail_given],
          index
-       ) do
-    case waiting_type == given_type do
-      true ->
-        check_args_type(namespace_call, tail_waiting, tail_given, index + 1)
+       )
+       when waiting_type == given_type,
+       do: check_args_type(namespace_call, tail_waiting, tail_given, index + 1)
 
-      _ ->
-        {:error,
-         "Bad type argument for '#{get_function_name(namespace_call)}'. The argument n°#{index} waiting '#{
-           waiting_type
-         }' and given '#{given_type}'"}
-    end
-  end
+  defp check_args_type(
+         namespace_call,
+         [waiting_type | _tail_waiting],
+         [given_type | _tail_given],
+         index
+       ),
+       do:
+         {:error,
+          "Bad type argument for '#{get_function_name(namespace_call)}'. The argument n°#{index} waiting '#{
+            waiting_type
+          }' and given '#{given_type}'"}
 
   defp check_args_type(_function_name, [], [], _index), do: true
 

@@ -7,21 +7,20 @@ defmodule CloudStackLang.Export.Yaml do
       defp generate({:map, data}, indent) do
         next_indent = "#{indent}  "
 
-        map =
-          data
-          |> Enum.map(fn {key, value} ->
-            first_part =
-              case value do
-                {:map, _} -> "#{indent}#{key}:\n"
-                {:array, _} -> "#{indent}#{key}:\n"
-                _ -> "#{indent}#{key}: "
-              end
+        data
+        |> Enum.map(fn {key, value} ->
+          first_part =
+            case value do
+              {:map, _} -> "#{indent}#{key}:\n"
+              {:array, _} -> "#{indent}#{key}:\n"
+              _ -> "#{indent}#{key}: "
+            end
 
-            second_part = generate(value, next_indent)
+          second_part = generate(value, next_indent)
 
-            "#{first_part}#{second_part}"
-          end)
-          |> Enum.join("\n")
+          "#{first_part}#{second_part}"
+        end)
+        |> Enum.join("\n")
       end
 
       defp generate({:array, data}, indent) do
@@ -45,7 +44,7 @@ defmodule CloudStackLang.Export.Yaml do
       end
 
       defp generate({:string, data}, indent) do
-        # Todo escape if :, {, }, [, ], ,, &, *, #, ?, |, -, <, >, =, !, %, @, \
+        # Escape if :, {, }, [, ], ,, &, *, #, ?, |, -, <, >, =, !, %, @, \
         # or end with space
         data = String.replace(data, "\\", "\\\\")
 

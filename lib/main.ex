@@ -21,12 +21,9 @@ defmodule CloudStackLang.Main do
     ]
 
     # TODO add output formal yaml or json
-
-    ret =
-      OptionParser.parse(args, options)
-      |> check_unknow_options(options)
-
-    case ret do
+    OptionParser.parse(args, options)
+    |> check_unknow_options(options)
+    |> case do
       true -> System.halt(0)
       _ -> System.halt(1)
     end
@@ -58,13 +55,13 @@ defmodule CloudStackLang.Main do
 
     IO.puts(:stderr, "unknown option: #{opts}")
 
-    1
+    false
   end
 
   defp version() do
     IO.puts("Cloud Stack Lang version #{@version}")
     IO.puts("Copyright 2020 - Emeric MARTINEAU")
 
-    0
+    true
   end
 end
