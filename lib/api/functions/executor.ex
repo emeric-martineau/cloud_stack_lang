@@ -37,9 +37,7 @@ defmodule CloudStackLang.Functions.Executor do
   defp call(namespace_call, _args, nil),
     do: {:error, "Function '#{get_function_name(namespace_call)}' not found"}
 
-  defp call(namespace_call, args, {:manager, fct_ptr}) do
-    apply(fct_ptr, [namespace_call, args])
-  end
+  defp call(namespace_call, args, {:manager, fct_ptr}), do: apply(fct_ptr, [namespace_call, args])
 
   defp call(namespace_call, args, {:fct, args_type, fct_ptr}) do
     cond do

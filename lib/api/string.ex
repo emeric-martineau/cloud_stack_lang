@@ -98,9 +98,7 @@ defmodule CloudStackLang.String do
       iex> CloudStackLang.String.interpolate("'\\${var1}${var1}\\${var1}'", %{:vars => %{:var1 => {:string, "2"}}})
       "'${var1}2${var1}'"
   """
-  def interpolate(value, state) do
-    replace_var([{0, 0}], value, state)
-  end
+  def interpolate(value, state), do: replace_var([{0, 0}], value, state)
 
   defp replace_var([{0, 0}], string, state) do
     new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, string, return: :index, capture: :first)
@@ -113,9 +111,7 @@ defmodule CloudStackLang.String do
     |> substitute([{start, len}], string, state)
   end
 
-  defp replace_var(nil, string, _state) do
-    string
-  end
+  defp replace_var(nil, string, _state), do: string
 
   defp substitute(false, [{start, len}], string, state) do
     start_string = String.slice(string, 0, start)
@@ -133,12 +129,18 @@ defmodule CloudStackLang.String do
 
   defp substitute(true, [{start, len}], string, state) do
     start_string = String.slice(string, 0, start - 1)
-    middle_string  = String.slice(string, start, len)
+    middle_string = String.slice(string, start, len)
 
     create_string_and_continue_parse(start_string, middle_string, [{start, len}], string, state)
   end
 
-  defp create_string_and_continue_parse(start_string, middle_string, [{start, len}], string, state) do
+  defp create_string_and_continue_parse(
+         start_string,
+         middle_string,
+         [{start, len}],
+         string,
+         state
+       ) do
     end_string = String.slice(string, start + len, String.length(string))
 
     new_pos = Regex.run(~R/(\$\{([^}]*)?\})/, end_string, return: :index, capture: :first)
@@ -149,7 +151,7 @@ defmodule CloudStackLang.String do
   defp check_if_has_previous_backslash([{0, _len}], _string), do: false
 
   defp check_if_has_previous_backslash([{start, _len}], string),
-       do: String.at(string, start - 1) == "\\"
+    do: String.at(string, start - 1) == "\\"
 
   defp get(state, key) do
     value =
@@ -167,27 +169,15 @@ defmodule CloudStackLang.String do
     end
   end
 
-  defp unwrap({:string, value}) do
-    value
-  end
+  defp unwrap({:string, value}), do: value
 
-  defp unwrap({:map, _value}) do
-    "<map>"
-  end
+  defp unwrap({:map, _value}), do: "<map>"
 
-  defp unwrap({:array, _value}) do
-    "<list>"
-  end
+  defp unwrap({:array, _value}), do: "<list>"
 
-  defp unwrap({:int, value}) do
-    Integer.to_string(value)
-  end
+  defp unwrap({:int, value}), do: Integer.to_string(value)
 
-  defp unwrap({:float, value}) do
-    Float.to_string(value)
-  end
+  defp unwrap({:float, value}), do: Float.to_string(value)
 
-  defp unwrap(value) do
-    value
-  end
+  defp unwrap(value), do: value
 end

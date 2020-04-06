@@ -39,9 +39,7 @@ defmodule CloudStackLang.Main.Help do
     0
   end
 
-  defp convert_to_switch(long, short) do
-    "[--#{long}|-#{short}]"
-  end
+  defp convert_to_switch(long, short), do: "[--#{long}|-#{short}]"
 
   defp convert_atom_to_string(atom),
     do:

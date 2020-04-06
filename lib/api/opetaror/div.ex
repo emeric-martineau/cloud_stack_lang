@@ -25,31 +25,18 @@ defmodule CloudStackLang.Operator.Div do
     iex> CloudStackLang.Operator.Div.reduce({:int, 3}, {:float, 2.0})
     {:float, 1.5}
   """
-  def reduce({:int, lvalue}, {:int, rvalue}) do
-    {:int, Kernel.div(lvalue, rvalue)}
-  end
+  def reduce({:int, lvalue}, {:int, rvalue}), do: {:int, Kernel.div(lvalue, rvalue)}
 
-  def reduce({:float, lvalue}, {:int, rvalue}) do
-    {:float, lvalue / rvalue}
-  end
+  def reduce({:float, lvalue}, {:int, rvalue}), do: {:float, lvalue / rvalue}
 
-  def reduce({:int, lvalue}, {:float, rvalue}) do
-    {:float, lvalue / rvalue}
-  end
+  def reduce({:int, lvalue}, {:float, rvalue}), do: {:float, lvalue / rvalue}
 
-  def reduce({:float, lvalue}, {:float, rvalue}) do
-    {:float, lvalue / rvalue}
-  end
+  def reduce({:float, lvalue}, {:float, rvalue}), do: {:float, lvalue / rvalue}
 
-  def reduce({:error, line, msg}, _rvalue) do
-    {:error, line, msg}
-  end
+  def reduce({:error, line, msg}, _rvalue), do: {:error, line, msg}
 
-  def reduce(_lvalue, {:error, line, msg}) do
-    {:error, line, msg}
-  end
+  def reduce(_lvalue, {:error, line, msg}), do: {:error, line, msg}
 
-  def reduce(lvalue, rvalue) do
-    {:error, "'/' operator not supported for #{inspect(lvalue)}, #{inspect(rvalue)}"}
-  end
+  def reduce(lvalue, rvalue),
+    do: {:error, "'/' operator not supported for #{inspect(lvalue)}, #{inspect(rvalue)}"}
 end

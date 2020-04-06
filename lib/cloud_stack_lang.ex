@@ -177,13 +177,9 @@ defmodule CloudStackLang.Parser do
     ])
   end
 
-  defp evaluate_tree([], state) do
-    state
-  end
+  defp evaluate_tree([], state), do: state
 
-  defp evaluate_tree(_, state) do
-    state
-  end
+  defp evaluate_tree(_, state), do: state
 
   defp process_tree({:error, err}, true, _state) do
     IO.puts("\nParse error")
@@ -192,9 +188,7 @@ defmodule CloudStackLang.Parser do
     err
   end
 
-  defp process_tree({:error, err}, false, _state) do
-    err
-  end
+  defp process_tree({:error, err}, false, _state), do: err
 
   defp process_tree({:ok, tree}, true, state) do
     IO.puts("\nParse tree")
@@ -208,18 +202,14 @@ defmodule CloudStackLang.Parser do
     result
   end
 
-  defp process_tree({:ok, tree}, false, state) do
-    evaluate_tree(tree, state)
-  end
+  defp process_tree({:ok, tree}, false, state), do: evaluate_tree(tree, state)
 
-  defp process_parse({:error, line, result}, _debug, _state) do
-    {:error, line, result}
-  end
+  defp process_parse({:error, line, result}, _debug, _state), do: {:error, line, result}
 
-  defp process_parse({:ok, tokens, _line}, debug, state) do
-    :cloud_stack_lang_parser.parse(tokens)
-    |> process_tree(debug, state)
-  end
+  defp process_parse({:ok, tokens, _line}, debug, state),
+    do:
+      :cloud_stack_lang_parser.parse(tokens)
+      |> process_tree(debug, state)
 
   def parse_and_eval(string, debug, state_vars, state_fct, state_modules_fct) do
     state = %{

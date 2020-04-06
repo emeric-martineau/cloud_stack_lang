@@ -35,9 +35,7 @@ defmodule CloudStackLang.Core.Util do
     {:ok, tokens, line}
   end
 
-  def debug_parse({:ok, tokens, line}, false, _state) do
-    {:ok, tokens, line}
-  end
+  def debug_parse({:ok, tokens, line}, false, _state), do: {:ok, tokens, line}
 
   # {:error, {3, :cloud_stack_lang_lexer, {:illegal, '"my_value\n}\n'}}, 5}
   # -> {:erro, line, msg}
@@ -53,9 +51,7 @@ defmodule CloudStackLang.Core.Util do
     {:error, line, msg}
   end
 
-  def extract_value({_type, value}) do
-    value
-  end
+  def extract_value({_type, value}), do: value
 
   def call_function(namespace_call, news_args, line, state) do
     return_value = Executor.run(namespace_call, news_args, state)
@@ -66,16 +62,12 @@ defmodule CloudStackLang.Core.Util do
     end
   end
 
-  def merge_list_of_map([]) do
-    %{}
-  end
+  def merge_list_of_map([]), do: %{}
 
-  def merge_list_of_map([last_item]) do
-    last_item
-  end
+  def merge_list_of_map([last_item]), do: last_item
 
-  def merge_list_of_map([item | tail]) do
-    item
-    |> Map.merge(merge_list_of_map(tail))
-  end
+  def merge_list_of_map([item | tail]),
+    do:
+      item
+      |> Map.merge(merge_list_of_map(tail))
 end

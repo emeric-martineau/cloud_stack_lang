@@ -38,9 +38,7 @@ defmodule CloudStackLang.Map do
     {:error, line, "Trying get a value with key '#{key}' on nil value"}
   end
 
-  def reduce([], state) do
-    state
-  end
+  def reduce([], state), do: state
 
   def reduce(access_keys, _state) do
     [first_key | _keys] = access_keys

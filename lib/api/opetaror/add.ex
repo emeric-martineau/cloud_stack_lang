@@ -43,59 +43,36 @@ defmodule CloudStackLang.Operator.Add do
     iex> CloudStackLang.Operator.Add.reduce({:map, %{ :a => {:int, 1}  }}, {:map, %{ :b => {:int, 2}, :c => {:int, 3} }})
     {:map, %{a: {:int, 1}, b: {:int, 2}, c: {:int, 3}}}
   """
-  def reduce({:error, line, msg}, _rvalue) do
-    {:error, line, msg}
-  end
+  def reduce({:error, line, msg}, _rvalue), do: {:error, line, msg}
 
-  def reduce(_lvalue, {:error, line, msg}) do
-    {:error, line, msg}
-  end
+  def reduce(_lvalue, {:error, line, msg}), do: {:error, line, msg}
 
-  def reduce({:int, lvalue}, {:int, rvalue}) do
-    {:int, lvalue + rvalue}
-  end
+  def reduce({:int, lvalue}, {:int, rvalue}), do: {:int, lvalue + rvalue}
 
-  def reduce({:float, lvalue}, {:int, rvalue}) do
-    {:float, lvalue + rvalue}
-  end
+  def reduce({:float, lvalue}, {:int, rvalue}), do: {:float, lvalue + rvalue}
 
-  def reduce({:int, lvalue}, {:float, rvalue}) do
-    {:float, lvalue + rvalue}
-  end
+  def reduce({:int, lvalue}, {:float, rvalue}), do: {:float, lvalue + rvalue}
 
-  def reduce({:float, lvalue}, {:float, rvalue}) do
-    {:float, lvalue + rvalue}
-  end
+  def reduce({:float, lvalue}, {:float, rvalue}), do: {:float, lvalue + rvalue}
 
-  def reduce({:int, lvalue}, {:string, rvalue}) do
-    {:string, Integer.to_string(lvalue) <> rvalue}
-  end
+  def reduce({:int, lvalue}, {:string, rvalue}),
+    do: {:string, Integer.to_string(lvalue) <> rvalue}
 
-  def reduce({:float, lvalue}, {:string, rvalue}) do
-    {:string, Float.to_string(lvalue) <> rvalue}
-  end
+  def reduce({:float, lvalue}, {:string, rvalue}),
+    do: {:string, Float.to_string(lvalue) <> rvalue}
 
-  def reduce({:string, lvalue}, {:int, rvalue}) do
-    {:string, lvalue <> Integer.to_string(rvalue)}
-  end
+  def reduce({:string, lvalue}, {:int, rvalue}),
+    do: {:string, lvalue <> Integer.to_string(rvalue)}
 
-  def reduce({:string, lvalue}, {:float, rvalue}) do
-    {:string, lvalue <> Float.to_string(rvalue)}
-  end
+  def reduce({:string, lvalue}, {:float, rvalue}),
+    do: {:string, lvalue <> Float.to_string(rvalue)}
 
-  def reduce({:string, lvalue}, {:string, rvalue}) do
-    {:string, lvalue <> rvalue}
-  end
+  def reduce({:string, lvalue}, {:string, rvalue}), do: {:string, lvalue <> rvalue}
 
-  def reduce({:array, lvalue}, {:array, rvalue}) do
-    {:array, Enum.concat(lvalue, rvalue)}
-  end
+  def reduce({:array, lvalue}, {:array, rvalue}), do: {:array, Enum.concat(lvalue, rvalue)}
 
-  def reduce({:map, lvalue}, {:map, rvalue}) do
-    {:map, Map.merge(lvalue, rvalue)}
-  end
+  def reduce({:map, lvalue}, {:map, rvalue}), do: {:map, Map.merge(lvalue, rvalue)}
 
-  def reduce(lvalue, rvalue) do
-    {:error, "'+' operator not supported for #{inspect(lvalue)}, #{inspect(rvalue)}"}
-  end
+  def reduce(lvalue, rvalue),
+    do: {:error, "'+' operator not supported for #{inspect(lvalue)}, #{inspect(rvalue)}"}
 end

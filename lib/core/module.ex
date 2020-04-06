@@ -41,15 +41,13 @@ defmodule CloudStackLang.Core.Module do
     {:map, new_item}
   end
 
-  def convert_all_map_key_to_camelcase(item) do
-    item
-  end
+  def convert_all_map_key_to_camelcase(item), do: item
 
-  def convert_module_name(name, reduce_fct) do
-    name
-    |> reduce_fct.()
-    |> Util.extract_value()
-    |> Atom.to_string()
-    |> Macro.camelize()
-  end
+  def convert_module_name(name, reduce_fct),
+    do:
+      name
+      |> reduce_fct.()
+      |> Util.extract_value()
+      |> Atom.to_string()
+      |> Macro.camelize()
 end

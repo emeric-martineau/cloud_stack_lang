@@ -11,9 +11,7 @@ defmodule CloudStackLang.Core.Reduce do
   alias CloudStackLang.Map, as: MMap
   alias CloudStackLang.Core.Util
 
-  def check_map_variable({:error, line, msg}, _access_key_list, _state) do
-    {:error, line, msg}
-  end
+  def check_map_variable({:error, line, msg}, _access_key_list, _state), do: {:error, line, msg}
 
   def check_map_variable(local_state, access_key_list, state) do
     # Parse all arguments
@@ -133,31 +131,23 @@ defmodule CloudStackLang.Core.Reduce do
     {:float, String.to_float(v)}
   end
 
-  def to_value({:hexa, _line, value}, _state) do
-    Number.from_hexa(value)
-  end
+  def to_value({:hexa, _line, value}, _state), do: Number.from_hexa(value)
 
-  def to_value({:octal, _line, value}, _state) do
-    Number.from_octal(value)
-  end
+  def to_value({:octal, _line, value}, _state), do: Number.from_octal(value)
 
   def to_value({:atom, _line, atom_name}, _state) do
     [_ | atom] = atom_name
     {:atom, List.to_atom(atom)}
   end
 
-  def to_value({:build_empty_map, _open_map}, _state) do
-    {:map, %{}}
-  end
+  def to_value({:build_empty_map, _open_map}, _state), do: {:map, %{}}
 
   def to_value({:build_map, open_map, assignments}, state) do
     {:open_map, line} = open_map
     to_value({:map, line, assignments}, state)
   end
 
-  def to_value({:build_empty_array, _open_map}, _state) do
-    {:array, []}
-  end
+  def to_value({:build_empty_array, _open_map}, _state), do: {:array, []}
 
   def to_value({:build_array, open_map, assignments}, state) do
     {:open_array, line} = open_map
@@ -173,25 +163,15 @@ defmodule CloudStackLang.Core.Reduce do
     end
   end
 
-  def to_value({:add_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Add.reduce/2)
-  end
+  def to_value({:add_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Add.reduce/2)
 
-  def to_value({:sub_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Sub.reduce/2)
-  end
+  def to_value({:sub_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Sub.reduce/2)
 
-  def to_value({:mul_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Mul.reduce/2)
-  end
+  def to_value({:mul_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Mul.reduce/2)
 
-  def to_value({:div_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Div.reduce/2)
-  end
+  def to_value({:div_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Div.reduce/2)
 
-  def to_value({:exp_op, lhs, rhs}, state) do
-    compute_operation(lhs, rhs, state, &Exp.reduce/2)
-  end
+  def to_value({:exp_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Exp.reduce/2)
 
   def to_value({:map_get, var_name, access_key_list}, state) do
     # Get variable value
@@ -200,9 +180,7 @@ defmodule CloudStackLang.Core.Reduce do
     check_map_variable(local_state, access_key_list, state)
   end
 
-  def to_value({:parenthesis, expr}, state) do
-    to_value(expr, state)
-  end
+  def to_value({:parenthesis, expr}, state), do: to_value(expr, state)
 
   def to_value({:fct_call, namespace, args}, state) do
     news_args = Enum.map(args, fn a -> to_value(a, state) end)

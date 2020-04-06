@@ -22,31 +22,18 @@ defmodule CloudStackLang.Operator.Mul do
     iex> CloudStackLang.Operator.Mul.reduce(1, {:error, 1, "hello"})
     {:error, 1, "hello"}
   """
-  def reduce({:error, line, msg}, _rvalue) do
-    {:error, line, msg}
-  end
+  def reduce({:error, line, msg}, _rvalue), do: {:error, line, msg}
 
-  def reduce(_lvalue, {:error, line, msg}) do
-    {:error, line, msg}
-  end
+  def reduce(_lvalue, {:error, line, msg}), do: {:error, line, msg}
 
-  def reduce({:int, lvalue}, {:int, rvalue}) do
-    {:int, lvalue * rvalue}
-  end
+  def reduce({:int, lvalue}, {:int, rvalue}), do: {:int, lvalue * rvalue}
 
-  def reduce({:float, lvalue}, {:int, rvalue}) do
-    {:float, lvalue * rvalue}
-  end
+  def reduce({:float, lvalue}, {:int, rvalue}), do: {:float, lvalue * rvalue}
 
-  def reduce({:int, lvalue}, {:float, rvalue}) do
-    {:float, lvalue * rvalue}
-  end
+  def reduce({:int, lvalue}, {:float, rvalue}), do: {:float, lvalue * rvalue}
 
-  def reduce({:float, lvalue}, {:float, rvalue}) do
-    {:float, lvalue * rvalue}
-  end
+  def reduce({:float, lvalue}, {:float, rvalue}), do: {:float, lvalue * rvalue}
 
-  def reduce(lvalue, rvalue) do
-    {:error, "'*' operator not supported for #{inspect(lvalue)}, #{inspect(rvalue)}"}
-  end
+  def reduce(lvalue, rvalue),
+    do: {:error, "'*' operator not supported for #{inspect(lvalue)}, #{inspect(rvalue)}"}
 end

@@ -37,9 +37,7 @@ defmodule CloudStackLang.Functions.Base do
     end
   end
 
-  defp encode64(s) do
-    {:string, Base.encode64(s)}
-  end
+  defp encode64(s), do: {:string, Base.encode64(s)}
 
   defp debug(s) do
     IO.puts("DEBUG: #{s}")

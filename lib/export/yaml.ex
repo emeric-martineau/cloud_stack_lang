@@ -55,13 +55,9 @@ defmodule CloudStackLang.Export.Yaml do
         end
       end
 
-      defp generate({:int, data}, indent) do
-        Integer.to_string(data)
-      end
+      defp generate({:int, data}, indent), do: Integer.to_string(data)
 
-      defp generate({:float, data}, indent) do
-        Float.to_string(data)
-      end
+      defp generate({:float, data}, indent), do: Float.to_string(data)
     end
   end
 end
