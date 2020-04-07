@@ -31,7 +31,8 @@ defmodule CloudStackLang.Main.Help do
     csl -d FILE    - Read FILE and output in file in same directory with default extention
                      with debug information
     csl -f '%dirname/%filename.%extension.%format' FILE
-                   - Read FILE and output in file in same directory with specified name
+                   - Read FILE and output in file in same directory with specified name.
+                     %provider can be also use to give provider name (e.g. 'aws')
 
     The --help and --version options can be given instead of a task for usage and versioning information.
     """)

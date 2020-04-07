@@ -1,34 +1,34 @@
-defmodule CloudStackLang.Export.AwsYaml do
+defmodule CloudStackLang.CloudStackLang.Providers.AWS.Yaml do
   @moduledoc ~S"""
   This module generate YAML stream.
 
   ## Examples
     iex> module = %{"AvailabilityZone" => {:string, "eu-west-1a"}, "ImageId" => {:string, "ami-0713f98de93617bb4"}, "InstanceType" => {:string, "t2.micro"}}
-    ...> CloudStackLang.Export.AwsYaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
+    ...> CloudStackLang.CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
     "Resources:\n  YouKnowMyName:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n    Type: AWS::TheType"
 
     iex> module = %{"a" => {:string, "SSH and HTTP"}, "b" => {:array, [map: %{"c" => {:string, "0.0.0.0/0"}, "d" => {:int, 22}, "e" => {:string, "tcp"}, "f" => {:int, 22}}, map: %{"g" => {:string, "0.0.0.0/0"}, "h" => {:int, 80}, "i" => {:string, "tcp"}, "j" => {:int, 80}}]}}
-    ...> CloudStackLang.Export.AwsYaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
+    ...> CloudStackLang.CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
     "Resources:\n  YouKnowMyName:\n    Properties:\n      a: SSH and HTTP\n      b:\n        - \n          c: 0.0.0.0/0\n          d: 22\n          e: tcp\n          f: 22\n        - \n          g: 0.0.0.0/0\n          h: 80\n          i: tcp\n          j: 80\n    Type: AWS::TheType"
 
     iex> module = %{"a" => {:map, %{"a" => {:int, 1}, "b" => {:int, 2}, "c" => {:array, [{:int, 0}, {:int, 1}]}}}, "b" => {:string, "hello"}}
-    ...> CloudStackLang.Export.AwsYaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
+    ...> CloudStackLang.CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
     "Resources:\n  YouKnowMyName:\n    Properties:\n      a:\n        a: 1\n        b: 2\n        c:\n          - 0\n          - 1\n      b: hello\n    Type: AWS::TheType"
 
     iex> module = %{"a" => {:map, %{"a" => {:int, 1}, "b" => {:int, 2}, "c" => {:array, [{:int, 0}, {:int, 1}]}}}, "b" => {:atom, :hello}}
-    ...> CloudStackLang.Export.AwsYaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
+    ...> CloudStackLang.CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
     "Resources:\n  YouKnowMyName:\n    Properties:\n      a:\n        a: 1\n        b: 2\n        c:\n          - 0\n          - 1\n      b: !Ref Hello\n    Type: AWS::TheType"
 
     iex> module = %{"a" => {:string, ":Thing"}}
-    ...> CloudStackLang.Export.AwsYaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
+    ...> CloudStackLang.CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
     "Resources:\n  YouKnowMyName:\n    Properties:\n      a: \":Thing\"\n    Type: AWS::TheType"
 
     iex> module = %{"a" => {:string, " Thing"}}
-    ...> CloudStackLang.Export.AwsYaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
+    ...> CloudStackLang.CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
     "Resources:\n  YouKnowMyName:\n    Properties:\n      a: \" Thing\"\n    Type: AWS::TheType"
 
     iex> module = %{"a" => {:string, "Thing\t"}}
-    ...> CloudStackLang.Export.AwsYaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
+    ...> CloudStackLang.CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
     "Resources:\n  YouKnowMyName:\n    Properties:\n      a: \"Thing\t\"\n    Type: AWS::TheType"
 
   """
@@ -36,16 +36,14 @@ defmodule CloudStackLang.Export.AwsYaml do
   alias CloudStackLang.Core.Util
 
   def gen(modules) do
-    aws_module = filter_aws(modules)
-
     yaml_aws_resources =
-      aws_module
+      modules
       |> filter_by_type("Resource")
       |> generate_aws_resources_map
 
     #    AWS :: Stack
     yaml_aws_global =
-      aws_module
+      modules
       |> filter_by_type("Stack")
       |> generate_aws_global_map
 
@@ -57,14 +55,6 @@ defmodule CloudStackLang.Export.AwsYaml do
 
     generate({:map, data}, "")
   end
-
-  defp filter_aws(modules),
-    do:
-      modules
-      |> Enum.filter(fn {_module_name, namespace, _module_properties} ->
-        [prefixe_ns | _tail] = namespace
-        prefixe_ns == "AWS"
-      end)
 
   defp filter_by_type(aws_module, type),
     do:

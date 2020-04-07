@@ -2,7 +2,7 @@ defmodule CloudStackLang.Main.Parse do
   @moduledoc ~S"""
     This module contain some functions for write file when it's parser.
   """
-  alias CloudStackLang.Export.AwsYaml
+  alias CloudStackLang.Providers
 
   def parse_files(_debug, [], _output) do
     IO.puts(:stderr, "Error! You must provide a filename.")
@@ -64,16 +64,43 @@ defmodule CloudStackLang.Main.Parse do
     false
   end
 
-  # TODO extension come from AwsYaml
+  # TODO extension come from provider
   # TODO support output_format '-' for stdin
   # TODO support directory file and recursive mode -> generate only one file in this case
   defp manage_parse_and_eval_return(map, filename, output_format),
     do:
-      AwsYaml.gen(map[:modules])
-      |> write_result(filename, output_format, "yaml")
+      Providers.get_list()
+      |> generate_file(map[:modules], filename, output_format)
 
-  defp write_result(content, filename, output_format, extension) do
-    new_filename = generate_new_filename(filename, output_format, extension)
+  defp generate_file([current_provider | next_providers], modules, filename, output_format) do
+    current_provider.prefix()
+    |> filter_provider(modules)
+    |> case do
+      [] ->
+        generate_file(next_providers, modules, filename, output_format)
+
+      mods ->
+        # TODO if multi provider in file, generate multi file ?
+        current_provider.export_to(mods, "yaml")
+        |> write_result(filename, output_format, "yaml", current_provider.name())
+    end
+  end
+
+  defp generate_file([], _modules, filename, _output_format) do
+    IO.puts(:stderr, "No provider found to manage module in file '#{filename}'!")
+    false
+  end
+
+  defp filter_provider(prefix, modules),
+    do:
+      modules
+      |> Enum.filter(fn {_module_name, namespace, _module_properties} ->
+        [prefixe_ns | _tail] = namespace
+        prefixe_ns == prefix
+      end)
+
+  defp write_result(content, filename, output_format, extension, provider) do
+    new_filename = generate_new_filename(filename, output_format, extension, provider)
 
     new_filename
     |> File.write(content)
@@ -111,7 +138,7 @@ defmodule CloudStackLang.Main.Parse do
   defp build_error_message(error, new_filename, filename),
     do: "Error when write file '#{new_filename}' (for '#{filename}'): #{error}"
 
-  defp generate_new_filename(filename, output_format, format) do
+  defp generate_new_filename(filename, output_format, format, provider) do
     dirname = Path.dirname(filename)
     basename = Path.basename(filename)
     extname = Path.extname(filename)
@@ -121,5 +148,6 @@ defmodule CloudStackLang.Main.Parse do
     |> String.replace("%filename", basename)
     |> String.replace("%extension", extname)
     |> String.replace("%format", format)
+    |> String.replace("%provider", provider)
   end
 end
