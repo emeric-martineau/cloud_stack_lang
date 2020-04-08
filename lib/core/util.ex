@@ -49,6 +49,7 @@ defmodule CloudStackLang.Core.Util do
   end
 
   def extract_value({_type, value}), do: value
+  def extract_value({_type, _line, value}), do: value
 
   def call_function(namespace_call, news_args, line, state) do
     Executor.run(namespace_call, news_args, state)
@@ -66,4 +67,17 @@ defmodule CloudStackLang.Core.Util do
     do:
       item
       |> Map.merge(merge_list_of_map(tail))
+
+  def get_module_fct(module_state, namespace) do
+    prefix =
+      namespace
+      |> Enum.at(0)
+      |> extract_value()
+      |> List.to_string()
+
+    case module_state[:modules_fct][prefix] do
+      nil -> %{}
+      v -> v
+    end
+  end
 end

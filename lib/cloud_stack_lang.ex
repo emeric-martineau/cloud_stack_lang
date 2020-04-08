@@ -147,22 +147,30 @@ defmodule CloudStackLang.Parser do
   end
 
   defp evaluate_tree([{:module, namespace, name, map_properties} | tail], state) do
+    # Create new state to authorize use name in key of map
     module_state =
       state
       |> Map.update(:in_module, true, fn _ -> true end)
 
+    # Merge global function and module function only for properties
+    module_properties_state =
+      module_state
+      |> Map.update(:fct, %{}, fn fct ->
+        Map.merge(fct, Util.get_module_fct(module_state, namespace))
+      end)
+
     {:build_module_map, _, properties} = map_properties
 
-    tmp_prop =
-      Enum.map(properties, fn {:module_map_arg, {:name, _line, prop_name}, value} ->
+    new_prop =
+      properties
+      |> Enum.map(fn {:module_map_arg, {:name, _line, prop_name}, value} ->
         name =
           prop_name
           |> List.to_string()
 
-        {name, Reduce.to_value(value, module_state)}
+        {name, Reduce.to_value(value, module_properties_state)}
       end)
-
-    new_prop = Enum.into(tmp_prop, %{})
+      |> Enum.into(%{})
 
     fct_reduce = fn {_prop_name, value} -> value end
 

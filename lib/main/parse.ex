@@ -27,7 +27,13 @@ defmodule CloudStackLang.Main.Parse do
 
   defp run_all_files(true, [current_file | tail], debug, output_format) do
     continue_run =
-      run(debug, output_format, current_file, CloudStackLang.Functions.Base.get_map(), %{})
+      run(
+        debug,
+        output_format,
+        current_file,
+        CloudStackLang.Functions.Base.get_map(),
+        get_modules_fcts()
+      )
 
     run_all_files(continue_run, tail, debug, output_format)
   end
@@ -150,4 +156,10 @@ defmodule CloudStackLang.Main.Parse do
     |> String.replace("%format", format)
     |> String.replace("%provider", provider)
   end
+
+  defp get_modules_fcts(),
+    do:
+      Providers.get_list()
+      |> Enum.map(fn provider -> {provider.prefix(), provider.modules_functions()} end)
+      |> Map.new()
 end

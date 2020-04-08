@@ -1,4 +1,4 @@
-defmodule CloudStackLang.CloudStackLang.Providers.AWS.YamlTest do
+defmodule CloudStackLang.Providers.AWS.YamlTest do
   use ExUnit.Case, async: true
-  doctest CloudStackLang.CloudStackLang.Providers.AWS.Yaml
+  doctest CloudStackLang.Providers.AWS.Yaml
 end
