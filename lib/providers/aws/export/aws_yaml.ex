@@ -103,6 +103,14 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     "!Ref #{ref}"
   end
 
+  defp generate({:module_fct, "base64", {:string, item}}, indent), do:
+    "\n#{indent}Fn::Base64: #{item}"
+
+  defp generate({:module_fct, "base64", {:module_fct, fct, data}}, indent) do
+    result = generate({:module_fct, fct, data}, "#{indent}  ")
+    "\n#{indent}Fn::Base64: #{result}"
+  end
+
   # TODO add AWS function support
   # TODO add other thing
 end

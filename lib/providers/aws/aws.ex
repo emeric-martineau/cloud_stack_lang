@@ -40,19 +40,37 @@ defmodule CloudStackLang.Providers.AWS do
   end
 
   defp aws_fct_manager([{:name, _line, 'ref'}], [{type, _item}]),
-    do:
-      {:error,
-       "Bad type argument for 'ref'. The argument n°0 waiting ':atom' or ':string' and given '#{
-         type
-       }'"}
+    do: base_argument("ref", 0, "':atom' or ':string'", type)
 
   defp aws_fct_manager([{:name, _line, 'ref'}], args),
-    do: {:error, "Bad arguments for 'ref'. Waiting 1, given #{length(args)}"}
+    do: wrong_argument("ref", args)
 
+  defp aws_fct_manager([{:name, _line, 'base64'}], [{:string, item}]) do
+    {:module_fct, "base64", {:string, item}}
+  end
+
+  defp aws_fct_manager([{:name, _line, 'base64'}], [{:module_fct, fct, data}]) do
+    {:module_fct, "base64", {:module_fct, fct, data}}
+  end
+
+  defp aws_fct_manager([{:name, _line, 'base64'}], [{type, _item}]),
+       do: base_argument("base64", 0, "':string' or another function", type)
+
+  defp aws_fct_manager([{:name, _line, 'base64'}], args),
+       do: wrong_argument("base64", args)
 
   defp aws_fct_manager(namespace, args) do
     IO.inspect(namespace)
     IO.inspect(args)
     {:string, "aws_fct_manager is calling !"}
   end
+
+  defp wrong_argument(fct_name, args), do: {:error, "Wrong arguments for '#{fct_name}'. Waiting 1, given #{length(args)}"}
+
+  defp base_argument(fct_name, index, type_waiting, type_gived),
+       do:
+         {:error,
+         "Bad type argument for '#{fct_name}'. The argument n°#{index} waiting #{type_waiting} and given '#{
+           type_gived
+         }'"}
 end

@@ -23,7 +23,7 @@ defmodule CloudStackLang.Functions.Executor do
       {:error, "Bad type argument for 'base64.encode'. The argument n°1 waiting 'string' and given 'int'"}
 
       iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'base64'}, {:name, 1, 'encode'}], [{:string, "hello"}, {:int, 1}], %{:fct => %{:base64 => %{:encode => {:fct, [:string], fn x -> {:string, x} end}}}})
-      {:error, "Bad arguments for 'base64.encode'. Waiting 1, given 2"}
+      {:error, "Wrong arguments for 'base64.encode'. Waiting 1, given 2"}
 
       iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'manager'}], [{:string, "hello"}], %{:fct => %{:manager => {:manager, fn _namespace, _args -> {:int, 45} end}}})
       {:int, 45}
@@ -46,7 +46,7 @@ defmodule CloudStackLang.Functions.Executor do
   defp call(namespace_call, args, {:fct, args_type, _fct_ptr}),
     do:
       {:error,
-       "Bad arguments for '#{get_function_name(namespace_call)}'. Waiting #{length(args_type)}, given #{
+       "Wrong arguments for '#{get_function_name(namespace_call)}'. Waiting #{length(args_type)}, given #{
          length(args)
        }"}
 
