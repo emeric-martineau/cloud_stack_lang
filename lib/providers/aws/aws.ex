@@ -31,46 +31,64 @@ defmodule CloudStackLang.Providers.AWS do
       :transform => {:manager, &aws_fct_manager/2}
     }
 
-  defp aws_fct_manager([{:name, _line, 'ref'}], [{:string, item}]) do
-    {:atom, String.to_atom(item)}
-  end
+  defp aws_fct_manager([{:name, _line, 'ref'}], [{:string, item}]),
+    do: {:atom, String.to_atom(item)}
 
-  defp aws_fct_manager([{:name, _line, 'ref'}], [{:atom, item}]) do
-    {:atom, item}
-  end
+  defp aws_fct_manager([{:name, _line, 'ref'}], [{:atom, item}]), do: {:atom, item}
 
+  ####################################### Ref #################################
   defp aws_fct_manager([{:name, _line, 'ref'}], [{type, _item}]),
     do: base_argument("ref", 0, "':atom' or ':string'", type)
 
   defp aws_fct_manager([{:name, _line, 'ref'}], args),
-    do: wrong_argument("ref", args)
+    do: wrong_argument("ref", 1, args)
 
-  defp aws_fct_manager([{:name, _line, 'base64'}], [{:string, item}]) do
-    {:module_fct, "base64", {:string, item}}
-  end
+  #################################### Base64 #################################
+  defp aws_fct_manager([{:name, _line, 'base64'}], [{:string, item}]),
+    do: {:module_fct, "base64", {:string, item}}
 
-  defp aws_fct_manager([{:name, _line, 'base64'}], [{:module_fct, fct, data}]) do
-    {:module_fct, "base64", {:module_fct, fct, data}}
-  end
+  defp aws_fct_manager([{:name, _line, 'base64'}], [{:module_fct, fct, data}]),
+    do: {:module_fct, "base64", {:module_fct, fct, data}}
 
   defp aws_fct_manager([{:name, _line, 'base64'}], [{type, _item}]),
-       do: base_argument("base64", 0, "':string' or another function", type)
+    do: base_argument("base64", 0, "':string' or another function", type)
 
   defp aws_fct_manager([{:name, _line, 'base64'}], args),
-       do: wrong_argument("base64", args)
+    do: wrong_argument("base64", 1, args)
 
-  defp aws_fct_manager(namespace, args) do
-    IO.inspect(namespace)
-    IO.inspect(args)
-    {:string, "aws_fct_manager is calling !"}
+  #################################### Cidr ###################################
+  defp aws_fct_manager([{:name, _line, 'cidr'}], [
+         {:string, ip_block},
+         {:int, count},
+         {:int, cidr_bits}
+       ]) do
+    {:module_fct, "cidr", [{:string, ip_block}, {:int, count}, {:int, cidr_bits}]}
   end
 
-  defp wrong_argument(fct_name, args), do: {:error, "Wrong arguments for '#{fct_name}'. Waiting 1, given #{length(args)}"}
+  defp aws_fct_manager([{:name, _line, 'cidr'}], [
+         {:module_fct, fct, data},
+         {:int, count},
+         {:int, cidr_bits}
+       ]) do
+    {:module_fct, "cidr", [{:module_fct, fct, data}, {:int, count}, {:int, cidr_bits}]}
+  end
+
+  defp aws_fct_manager([{:name, _line, 'cidr'}], [_, _, _]),
+    do:
+      {:error,
+       "Bad type argument for 'cidr'. Waiting ([':string' or function call], ':int', ':int')"}
+
+  defp aws_fct_manager([{:name, _line, 'cidr'}], args),
+    do: wrong_argument("cidr", 3, args)
+
+  #################################### Error ##################################
+  defp wrong_argument(fct_name, nb_args, args),
+    do: {:error, "Wrong arguments for '#{fct_name}'. Waiting #{nb_args}, given #{length(args)}"}
 
   defp base_argument(fct_name, index, type_waiting, type_gived),
-       do:
-         {:error,
-         "Bad type argument for '#{fct_name}'. The argument n°#{index} waiting #{type_waiting} and given '#{
-           type_gived
-         }'"}
+    do:
+      {:error,
+       "Bad type argument for '#{fct_name}'. The argument n°#{index} waiting #{type_waiting} and given '#{
+         type_gived
+       }'"}
 end

@@ -1,0 +1,14 @@
+AWS::Resource::EC2::VPC(:example_vpc) {
+  cidr_block = "10.0.0.0/16"
+}
+
+AWS::Resource::EC2::VPCCidrBlock(:ipv6_cidr_block) {
+  amazon_provided_ipv6_cidr_block = "true"
+  vpc_id = :example_vpc
+}
+
+AWS::Resource::EC2::Subnet(:example_subnet) {
+  assign_ipv6_address_on_creation = "true"
+  cidr_block = cidr("10.0.0.0/16" 1 8)
+  vpc_id = :example_vpc
+}
