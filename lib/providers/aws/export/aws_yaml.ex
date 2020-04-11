@@ -158,10 +158,29 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
   end
 
   #################################### Select #################################
+  defp generate({:module_fct, "select", [{:int, index}, {:array, data}]}, indent) do
+    result = generate({:array, [{:int, index}, {:array, data}]}, "#{indent}  ")
+
+    "\n#{indent}Fn::Select:\n#{result}"
+  end
+
   defp generate({:module_fct, "select", [{:int, index}, {:module_fct, fct, data}]}, indent) do
     result = generate({:array, [{:int, index}, {:module_fct, fct, data}]}, "#{indent}  ")
 
     "\n#{indent}Fn::Select:\n#{result}"
+  end
+
+  #################################### Split #################################
+  defp generate({:module_fct, "split", [{:string, delimiter}, {:string, datat}]}, indent) do
+    result = generate({:array, [{:string, delimiter}, {:string, datat}]}, "#{indent}  ")
+
+    "\n#{indent}Fn::Split:\n#{result}"
+  end
+
+  defp generate({:module_fct, "split", [{:string, delimiter}, {:module_fct, fct, data}]}, indent) do
+    result = generate({:array, [{:string, delimiter}, {:module_fct, fct, data}]}, "#{indent}  ")
+
+    "\n#{indent}Fn::Split:\n#{result}"
   end
 
   # TODO check atom to make automatic depondson, check also GetAttr

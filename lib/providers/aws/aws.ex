@@ -30,7 +30,6 @@ defmodule CloudStackLang.Providers.AWS do
       :import_value => {:manager, &aws_fct_manager/2},
       # TODO
       :join => {:manager, &aws_fct_manager/2},
-      # TODO
       :select => {:manager, &aws_fct_manager/2},
       :split => {:manager, &aws_fct_manager/2},
       # TODO
@@ -109,11 +108,27 @@ defmodule CloudStackLang.Providers.AWS do
   defp aws_fct_manager([{:name, _line, 'select'}], [{:int, index}, {:module_fct, fct, data}]),
     do: {:module_fct, "select", [{:int, index}, {:module_fct, fct, data}]}
 
+  defp aws_fct_manager([{:name, _line, 'select'}], [{:int, index}, {:array, data}]),
+    do: {:module_fct, "select", [{:int, index}, {:array, data}]}
+
   defp aws_fct_manager([{:name, _line, 'select'}], [_, _]),
-    do: {:error, "Bad type argument for 'select'. Waiting [':int', function call]"}
+    do: {:error, "Bad type argument for 'select'. Waiting (':int', [':array' or function call])"}
 
   defp aws_fct_manager([{:name, _line, 'select'}], args),
     do: wrong_argument("select", 2, args)
+
+  #################################### Split #################################
+  defp aws_fct_manager([{:name, _line, 'split'}], [{:string, delimiter}, {:string, data}]),
+    do: {:module_fct, "split", [{:string, delimiter}, {:string, data}]}
+
+  defp aws_fct_manager([{:name, _line, 'split'}], [{:string, delimiter}, {:module_fct, fct, data}]),
+       do: {:module_fct, "split", [{:string, delimiter}, {:module_fct, fct, data}]}
+
+  defp aws_fct_manager([{:name, _line, 'split'}], [_, _]),
+    do: {:error, "Bad type argument for 'split'. Waiting (':string', function call)"}
+
+  defp aws_fct_manager([{:name, _line, 'split'}], args),
+    do: wrong_argument("split", 2, args)
 
   #################################### Error ##################################
   defp wrong_argument(fct_name, nb_args, args),
