@@ -155,10 +155,10 @@ defmodule CloudStackLang.Core.Reduce do
     v_name = List.to_atom(var_name)
 
     case v_name do
-      :true ->
+      true ->
         {:bool, true}
 
-      :false ->
+      false ->
         {:bool, false}
 
       _ ->

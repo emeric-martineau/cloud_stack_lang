@@ -31,6 +31,10 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     ...> CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
     "Resources:\n  YouKnowMyName:\n    Properties:\n      a: \"Thing\t\"\n    Type: AWS::TheType"
 
+    iex> module = %{"a" => {:string, "Thing\nEarly"}}
+    ...> CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
+    "Resources:\n  YouKnowMyName:\n    Properties:\n      a: \"Thing\\nEarly\"\n    Type: AWS::TheType"
+
   """
   use CloudStackLang.Export.Yaml
   alias CloudStackLang.Core.Util
@@ -103,8 +107,10 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     "!Ref #{ref}"
   end
 
-  defp generate({:module_fct, "base64", {:string, item}}, indent),
-    do: "\n#{indent}Fn::Base64: #{item}"
+  defp generate({:module_fct, "base64", {:string, item}}, indent) do
+    item = generate({:string, item}, "")
+    "\n#{indent}Fn::Base64: #{item}"
+  end
 
   defp generate({:module_fct, "base64", {:module_fct, fct, data}}, indent) do
     result = generate({:module_fct, fct, data}, "#{indent}  ")

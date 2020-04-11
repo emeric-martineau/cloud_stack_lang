@@ -1,0 +1,32 @@
+my_instance_type = "t2.micro"
+
+AWS::Resource::EC2::Instance(:my_instance) {
+  availability_zone = "eu-west-1a"
+  image_id = "ami-0713f98de93617bb4"
+  instance_type = my_instance_type
+  security_groups = [:ssh_security_group]
+  user_data = base64("#!/bin/bash -xe
+                      yum update -y
+                      yum install -y httpd
+                      systemctl start httpd
+                      systemctl enable httpd
+                      echo 'Hello World from user data' > /var/www/html/index.html")
+}
+
+AWS::Resource::EC2::SecurityGroup(:ssh_security_group) {
+  group_description = "SSH and HTTP"
+  security_group_ingress = [
+    {
+      cidr_ip = "0.0.0.0/0"
+      from_port = 22
+      ip_protocol = "tcp"
+      to_port = 22
+    }
+    {
+      cidr_ip = "0.0.0.0/0"
+      from_port = 80
+      ip_protocol = "tcp"
+      to_port = 80
+    }
+  ]
+}
