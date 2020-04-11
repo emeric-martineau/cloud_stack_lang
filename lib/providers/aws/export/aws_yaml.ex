@@ -126,21 +126,24 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
   defp generate(
          {:module_fct, "cidr", [{:string, ip_block}, {:int, count}, {:int, cidr_bits}]},
          indent
-       ),
-       do:
-         "\n#{indent}Fn::Cidr:\n#{indent}  - \"#{ip_block}\"\n#{indent}  - #{count}\n#{indent}  - #{
-           cidr_bits
-         }"
+       ) do
+    result =
+      generate({:array, [{:string, ip_block}, {:int, count}, {:int, cidr_bits}]}, "#{indent}  ")
+
+    "\n#{indent}Fn::Cidr:\n#{result}"
+  end
 
   defp generate(
          {:module_fct, "cidr", [{:module_fct, fct, data}, {:int, count}, {:int, cidr_bits}]},
          indent
        ) do
-    result = generate({:module_fct, fct, data}, "#{indent}  ")
+    result =
+      generate(
+        {:array, [{:module_fct, fct, data}, {:int, count}, {:int, cidr_bits}]},
+        "#{indent}  "
+      )
 
-    "\n#{indent}Fn::Cidr:\n#{indent}  - \"#{result}\"\n#{indent}  - #{count}\n#{indent}  - #{
-      cidr_bits
-    }"
+    "\n#{indent}Fn::Cidr:\n#{result}"
   end
 
   #################################### GetAZs #################################
@@ -156,8 +159,9 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
 
   #################################### Select #################################
   defp generate({:module_fct, "select", [{:int, index}, {:module_fct, fct, data}]}, indent) do
-    result = generate({:module_fct, fct, data}, "#{indent}    ")
-    "\n#{indent}Fn::Select:\n#{indent}  - #{index}\n#{indent}  - #{result}"
+    result = generate({:array, [{:int, index}, {:module_fct, fct, data}]}, "#{indent}  ")
+
+    "\n#{indent}Fn::Select:\n#{result}"
   end
 
   # TODO check atom to make automatic depondson, check also GetAttr
