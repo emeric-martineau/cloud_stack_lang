@@ -48,8 +48,9 @@ defmodule CloudStackLang.Export.Yaml do
         # or end with space
         special_char = String.match?(data, ~r/(^[:{}[\],&*#?|\-<>=!%@\s])|(\s$)/)
         new_line = String.match?(data, ~r/\n|\r/)
+        empty_string = String.length(data) == 0
 
-        case special_char || new_line do
+        case special_char || new_line || empty_string do
           true ->
             data =
               data

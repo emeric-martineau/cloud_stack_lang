@@ -35,6 +35,10 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     ...> CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
     "Resources:\n  YouKnowMyName:\n    Properties:\n      a: \"Thing\\nEarly\"\n    Type: AWS::TheType"
 
+    iex> module = %{"a" => {:string, ""}}
+    ...> CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
+    "Resources:\n  YouKnowMyName:\n    Properties:\n      a: \"\"\n    Type: AWS::TheType"
+
   """
   use CloudStackLang.Export.Yaml
   alias CloudStackLang.Core.Util
@@ -107,6 +111,7 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     "!Ref #{ref}"
   end
 
+  #################################### Base64 #################################
   defp generate({:module_fct, "base64", {:string, item}}, indent) do
     item = generate({:string, item}, "")
     "\n#{indent}Fn::Base64: #{item}"
@@ -117,6 +122,7 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     "\n#{indent}Fn::Base64: #{result}"
   end
 
+  #################################### Cidr ###################################
   defp generate(
          {:module_fct, "cidr", [{:string, ip_block}, {:int, count}, {:int, cidr_bits}]},
          indent
@@ -137,6 +143,19 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     }"
   end
 
-  # TODO add AWS function support
-  # TODO add other thing
+  #################################### GetAZs #################################
+  defp generate({:module_fct, "get_azs", {:string, item}}, indent) do
+    item = generate({:string, item}, "")
+    "\n#{indent}Fn::GetAZs: #{item}"
+  end
+
+  defp generate({:module_fct, "get_azs", {:module_fct, fct, data}}, indent) do
+    result = generate({:module_fct, fct, data}, "#{indent}  ")
+    "\n#{indent}Fn::GetAZs: #{result}"
+  end
+
+  # TODO check atom to make automatic depondson, check also GetAttr
+  # TODO allow ref to AWS::xxx variable
+  # Fn::GetAZs:
+  #   Ref: "AWS::Region"
 end

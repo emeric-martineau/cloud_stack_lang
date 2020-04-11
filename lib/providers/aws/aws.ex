@@ -21,13 +21,22 @@ defmodule CloudStackLang.Providers.AWS do
       :ref => {:manager, &aws_fct_manager/2},
       :base64 => {:manager, &aws_fct_manager/2},
       :cidr => {:manager, &aws_fct_manager/2},
+      # TODO
       :find_in_map => {:manager, &aws_fct_manager/2},
+      # TODO
       :get_att => {:manager, &aws_fct_manager/2},
       :get_azs => {:manager, &aws_fct_manager/2},
+      # TODO
       :import_value => {:manager, &aws_fct_manager/2},
+      # TODO
       :join => {:manager, &aws_fct_manager/2},
+      # TODO
+      :select => {:manager, &aws_fct_manager/2},
+      # TODO
       :split => {:manager, &aws_fct_manager/2},
+      # TODO
       :sub => {:manager, &aws_fct_manager/2},
+      # TODO
       :transform => {:manager, &aws_fct_manager/2}
     }
 
@@ -80,6 +89,22 @@ defmodule CloudStackLang.Providers.AWS do
 
   defp aws_fct_manager([{:name, _line, 'cidr'}], args),
     do: wrong_argument("cidr", 3, args)
+
+  #################################### GetAZs #################################
+  defp aws_fct_manager([{:name, _line, 'get_azs'}], []),
+    do: {:module_fct, "get_azs", {:string, ""}}
+
+  defp aws_fct_manager([{:name, _line, 'get_azs'}], [{:string, item}]),
+    do: {:module_fct, "get_azs", {:string, item}}
+
+  defp aws_fct_manager([{:name, _line, 'get_azs'}], [{:module_fct, fct, data}]),
+    do: {:module_fct, "get_azs", {:module_fct, fct, data}}
+
+  defp aws_fct_manager([{:name, _line, 'get_azs'}], [{type, _item}]),
+    do: base_argument("get_azs", 0, "':string' or another function", type)
+
+  defp aws_fct_manager([{:name, _line, 'get_azs'}], args),
+    do: wrong_argument("get_azs", 1, args)
 
   #################################### Error ##################################
   defp wrong_argument(fct_name, nb_args, args),
