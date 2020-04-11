@@ -65,6 +65,7 @@ defmodule CloudStackLang.String do
       |> String.replace("\\r", "\r")
       |> String.replace("\\t", "\t")
       |> String.replace("\\s", "\s")
+      |> String.replace("\\e", "\e")
 
     Regex.replace(~r/\\([^$])/, new_value, "\\1")
   end

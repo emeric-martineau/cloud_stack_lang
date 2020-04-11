@@ -29,7 +29,7 @@ defmodule CloudStackLang.Parser.FullTest do
     string1 = 'coucou c\'est cool'
     string2 = "coucou
         ${int1}"
-    string3 = "\n\r\t\s"
+    string3 = "\n\r\t\s\e"
     string4 = 1 + "hello"
     string5 = "hello" + 1
     string6 = 1.0 + "hello"
@@ -101,7 +101,7 @@ defmodule CloudStackLang.Parser.FullTest do
       atom1: {:atom, :toto},
       string1: {:string, "coucou c'est cool"},
       string2: {:string, "coucou\n    1"},
-      string3: {:string, "\n\r\t\s"},
+      string3: {:string, "\n\r\t\s\e"},
       string4: {:string, "1hello"},
       string5: {:string, "hello1"},
       string6: {:string, "1.0hello"},
