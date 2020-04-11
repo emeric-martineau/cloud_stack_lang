@@ -32,7 +32,6 @@ defmodule CloudStackLang.Providers.AWS do
       :join => {:manager, &aws_fct_manager/2},
       # TODO
       :select => {:manager, &aws_fct_manager/2},
-      # TODO
       :split => {:manager, &aws_fct_manager/2},
       # TODO
       :sub => {:manager, &aws_fct_manager/2},
@@ -105,6 +104,16 @@ defmodule CloudStackLang.Providers.AWS do
 
   defp aws_fct_manager([{:name, _line, 'get_azs'}], args),
     do: wrong_argument("get_azs", 1, args)
+
+  #################################### Select #################################
+  defp aws_fct_manager([{:name, _line, 'select'}], [{:int, index}, {:module_fct, fct, data}]),
+    do: {:module_fct, "select", [{:int, index}, {:module_fct, fct, data}]}
+
+  defp aws_fct_manager([{:name, _line, 'select'}], [_, _]),
+    do: {:error, "Bad type argument for 'select'. Waiting [':int', function call]"}
+
+  defp aws_fct_manager([{:name, _line, 'select'}], args),
+    do: wrong_argument("select", 2, args)
 
   #################################### Error ##################################
   defp wrong_argument(fct_name, nb_args, args),

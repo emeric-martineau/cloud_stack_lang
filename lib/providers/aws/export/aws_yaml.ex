@@ -154,6 +154,12 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     "\n#{indent}Fn::GetAZs: #{result}"
   end
 
+  #################################### Select #################################
+  defp generate({:module_fct, "select", [{:int, index}, {:module_fct, fct, data}]}, indent) do
+    result = generate({:module_fct, fct, data}, "#{indent}    ")
+    "\n#{indent}Fn::Select:\n#{indent}  - #{index}\n#{indent}  - #{result}"
+  end
+
   # TODO check atom to make automatic depondson, check also GetAttr
   # TODO allow ref to AWS::xxx variable
   # Fn::GetAZs:
