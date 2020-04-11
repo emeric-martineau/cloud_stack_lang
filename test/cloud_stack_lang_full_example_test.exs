@@ -85,6 +85,10 @@ defmodule CloudStackLang.Parser.FullTest do
 
     // Octal
     octal1 = 0o1234
+
+    // Boolean
+    boolean1 = true
+    boolean2 = false
     """
 
     result = %{
@@ -136,7 +140,9 @@ defmodule CloudStackLang.Parser.FullTest do
       array6: {:array, [int: 1, int: 2, int: 3]},
       function1: {:string, "1"},
       hexa1: {:int, 4660},
-      octal1: {:int, 668}
+      octal1: {:int, 668},
+      boolean1: {:bool, true},
+      boolean2: {:bool, false}
     }
 
     fct = %{

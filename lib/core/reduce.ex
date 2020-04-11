@@ -154,9 +154,21 @@ defmodule CloudStackLang.Core.Reduce do
   def to_value({:name, line, var_name}, state) do
     v_name = List.to_atom(var_name)
 
-    case state[:vars][v_name] do
-      nil -> {:error, line, "Variable name '#{var_name}' is not declared"}
-      v -> v
+    case v_name do
+      :true ->
+        {:bool, true}
+
+      :false ->
+        {:bool, false}
+
+      _ ->
+        case state[:vars][v_name] do
+          nil ->
+            {:error, line, "Variable name '#{var_name}' is not declared"}
+
+          value ->
+            value
+        end
     end
   end
 

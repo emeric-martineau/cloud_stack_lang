@@ -115,14 +115,20 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
          {:module_fct, "cidr", [{:string, ip_block}, {:int, count}, {:int, cidr_bits}]},
          indent
        ),
-       do: "\n#{indent}Fn::Cidr:\n#{indent}  - \"#{ip_block}\"\n#{indent}  - #{count}\n#{indent}  - #{cidr_bits}"
+       do:
+         "\n#{indent}Fn::Cidr:\n#{indent}  - \"#{ip_block}\"\n#{indent}  - #{count}\n#{indent}  - #{
+           cidr_bits
+         }"
 
   defp generate(
          {:module_fct, "cidr", [{:module_fct, fct, data}, {:int, count}, {:int, cidr_bits}]},
          indent
        ) do
     result = generate({:module_fct, fct, data}, "#{indent}  ")
-    "\n#{indent}Fn::Cidr:\n#{indent}  - \"#{result}\"\n#{indent}  - #{count}\n#{indent}  - #{cidr_bits}"
+
+    "\n#{indent}Fn::Cidr:\n#{indent}  - \"#{result}\"\n#{indent}  - #{count}\n#{indent}  - #{
+      cidr_bits
+    }"
   end
 
   # TODO add AWS function support
