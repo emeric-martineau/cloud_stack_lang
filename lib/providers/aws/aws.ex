@@ -28,7 +28,6 @@ defmodule CloudStackLang.Providers.AWS do
       :get_azs => {:manager, &aws_fct_manager/2},
       # TODO
       :import_value => {:manager, &aws_fct_manager/2},
-      # TODO
       :join => {:manager, &aws_fct_manager/2},
       :select => {:manager, &aws_fct_manager/2},
       :split => {:manager, &aws_fct_manager/2},
@@ -129,6 +128,16 @@ defmodule CloudStackLang.Providers.AWS do
 
   defp aws_fct_manager([{:name, _line, 'split'}], args),
     do: wrong_argument("split", 2, args)
+
+  #################################### Join #################################
+  defp aws_fct_manager([{:name, _line, 'join'}], [{:string, delimiter}, {:array, data}]),
+    do: {:module_fct, "join", [{:string, delimiter}, {:array, data}]}
+
+  defp aws_fct_manager([{:name, _line, 'join'}], [_, _]),
+    do: {:error, "Bad type argument for 'join'. Waiting (':string', ':array')"}
+
+  defp aws_fct_manager([{:name, _line, 'join'}], args),
+    do: wrong_argument("join", 2, args)
 
   #################################### Error ##################################
   defp wrong_argument(fct_name, nb_args, args),

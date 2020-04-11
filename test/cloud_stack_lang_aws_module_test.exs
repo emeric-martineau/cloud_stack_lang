@@ -512,4 +512,59 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
 
     assert yaml_test == yaml_generate
   end
+
+  test "Call join method" do
+    text = ~S"""
+    AWS::Resource::EC2::Instance(:my_instance) {
+      availability_zone = "eu-west-1a"
+      image_id = "ami-0713f98de93617bb4"
+      instance_type = "t2.micro"
+      security_groups = join("," ["a" cidr("192.168.0.0/24" 6 5) "b"])
+      nothing = join("," [1 2 3])
+    }
+    """
+
+    var_result = %{}
+
+    module_result = [
+      {"MyInstance", ["AWS", "Resource", "EC2", "Instance"],
+       {:map,
+        %{
+          "AvailabilityZone" => {:string, "eu-west-1a"},
+          "ImageId" => {:string, "ami-0713f98de93617bb4"},
+          "InstanceType" => {:string, "t2.micro"},
+          "Nothing" => {:module_fct, "join", [string: ",", array: [int: 1, int: 2, int: 3]]},
+          "SecurityGroups" => {
+            :module_fct,
+            "join",
+            [
+              string: ",",
+              array: [
+                {:string, "a"},
+                {:module_fct, "cidr", [string: "192.168.0.0/24", int: 6, int: 5]},
+                {:string, "b"}
+              ]
+            ]
+          }
+        }}}
+    ]
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+
+    assert state[:vars] == var_result
+    assert state[:modules] == module_result
+
+    yaml_generate = AWS.Yaml.gen(module_result)
+
+    yaml_test =
+      "Resources:\n  MyInstance:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      Nothing: \n        Fn::Join:\n          - \",\"\n          - \n            - 1\n            - 2\n            - 3\n      SecurityGroups: \n        Fn::Join:\n          - \",\"\n          - \n            - a\n            - \n              Fn::Cidr:\n                - 192.168.0.0/24\n                - 6\n                - 5\n            - b\n    Type: AWS::EC2::Instance"
+
+    assert yaml_test == yaml_generate
+  end
 end

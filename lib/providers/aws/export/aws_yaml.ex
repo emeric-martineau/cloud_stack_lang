@@ -171,8 +171,8 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
   end
 
   #################################### Split #################################
-  defp generate({:module_fct, "split", [{:string, delimiter}, {:string, datat}]}, indent) do
-    result = generate({:array, [{:string, delimiter}, {:string, datat}]}, "#{indent}  ")
+  defp generate({:module_fct, "split", [{:string, delimiter}, {:string, data}]}, indent) do
+    result = generate({:array, [{:string, delimiter}, {:string, data}]}, "#{indent}  ")
 
     "\n#{indent}Fn::Split:\n#{result}"
   end
@@ -181,6 +181,13 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     result = generate({:array, [{:string, delimiter}, {:module_fct, fct, data}]}, "#{indent}  ")
 
     "\n#{indent}Fn::Split:\n#{result}"
+  end
+
+  #################################### Join #################################
+  defp generate({:module_fct, "join", [{:string, delimiter}, {:array, data}]}, indent) do
+    result = generate({:array, [{:string, delimiter}, {:array, data}]}, "#{indent}  ")
+
+    "\n#{indent}Fn::Join:\n#{result}"
   end
 
   # TODO check atom to make automatic depondson, check also GetAttr
