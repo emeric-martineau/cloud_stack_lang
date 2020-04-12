@@ -611,4 +611,145 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
 
     assert yaml_test == yaml_generate
   end
+
+  test "Call transform get_arr with all string" do
+    text = ~S"""
+    AWS::Resource::EC2::Instance(:my_instance) {
+      availability_zone = "eu-west-1a"
+      image_id = "ami-0713f98de93617bb4"
+      instance_type = "t2.micro"
+      nothing = get_att('MyInstance' 'MyProperty1.MyProperty2')
+    }
+    """
+
+    var_result = %{}
+
+    module_result = [
+      {"MyInstance", ["AWS", "Resource", "EC2", "Instance"],
+       {:map,
+        %{
+          "AvailabilityZone" => {:string, "eu-west-1a"},
+          "ImageId" => {:string, "ami-0713f98de93617bb4"},
+          "InstanceType" => {:string, "t2.micro"},
+          "Nothing" =>
+            {:module_fct, "get_att", [string: "MyInstance", string: "MyProperty1.MyProperty2"]}
+        }}}
+    ]
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+
+    assert state[:vars] == var_result
+    assert state[:modules] == module_result
+
+    yaml_generate = AWS.Yaml.gen(module_result)
+
+    yaml_test =
+      "Resources:\n  MyInstance:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      Nothing: \n        Fn::GetAtt:\n          - MyInstance\n          - MyProperty1.MyProperty2\n    Type: AWS::EC2::Instance"
+
+    assert yaml_test == yaml_generate
+  end
+
+  test "Call transform get_arr with atom and string" do
+    text = ~S"""
+    AWS::Resource::EC2::Instance(:my_instance0) {
+      availability_zone = "eu-west-1a"
+    }
+
+    AWS::Resource::EC2::Instance(:my_instance1) {
+      availability_zone = "eu-west-1a"
+      image_id = "ami-0713f98de93617bb4"
+      instance_type = "t2.micro"
+      nothing = get_att(:my_instance0 'MyProperty1.MyProperty2')
+    }
+    """
+
+    var_result = %{}
+
+    module_result = [
+      {"MyInstance1", ["AWS", "Resource", "EC2", "Instance"],
+       {:map,
+        %{
+          "AvailabilityZone" => {:string, "eu-west-1a"},
+          "ImageId" => {:string, "ami-0713f98de93617bb4"},
+          "InstanceType" => {:string, "t2.micro"},
+          "Nothing" =>
+            {:module_fct, "get_att", [atom: :my_instance0, string: "MyProperty1.MyProperty2"]}
+        }}},
+      {"MyInstance0", ["AWS", "Resource", "EC2", "Instance"],
+       {:map, %{"AvailabilityZone" => {:string, "eu-west-1a"}}}}
+    ]
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+
+    assert state[:vars] == var_result
+    assert state[:modules] == module_result
+
+    yaml_generate = AWS.Yaml.gen(module_result)
+
+    yaml_test =
+      "Resources:\n  MyInstance0:\n    Properties:\n      AvailabilityZone: eu-west-1a\n    Type: AWS::EC2::Instance\n  MyInstance1:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      Nothing: \n        Fn::GetAtt:\n          - MyInstance0\n          - MyProperty1.MyProperty2\n    Type: AWS::EC2::Instance"
+
+    assert yaml_test == yaml_generate
+  end
+
+  test "Call transform get_arr with module call form" do
+    text = ~S"""
+    AWS::Resource::EC2::Instance(:my_instance0) {
+      availability_zone = "eu-west-1a"
+    }
+
+    AWS::Resource::EC2::Instance(:my_instance1) {
+      availability_zone = "eu-west-1a"
+      image_id = "ami-0713f98de93617bb4"
+      instance_type = "t2.micro"
+      nothing = module.my_instance0.my_property1.my_property2()
+    }
+    """
+
+    var_result = %{}
+
+    module_result = [
+      {"MyInstance1", ["AWS", "Resource", "EC2", "Instance"],
+       {:map,
+        %{
+          "AvailabilityZone" => {:string, "eu-west-1a"},
+          "ImageId" => {:string, "ami-0713f98de93617bb4"},
+          "InstanceType" => {:string, "t2.micro"},
+          "Nothing" =>
+            {:module_fct, "get_att", [atom: :my_instance0, string: "MyProperty1.MyProperty2"]}
+        }}},
+      {"MyInstance0", ["AWS", "Resource", "EC2", "Instance"],
+       {:map, %{"AvailabilityZone" => {:string, "eu-west-1a"}}}}
+    ]
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+
+    assert state[:vars] == var_result
+    assert state[:modules] == module_result
+
+    yaml_generate = AWS.Yaml.gen(module_result)
+
+    yaml_test =
+      "Resources:\n  MyInstance0:\n    Properties:\n      AvailabilityZone: eu-west-1a\n    Type: AWS::EC2::Instance\n  MyInstance1:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      Nothing: \n        Fn::GetAtt:\n          - MyInstance0\n          - MyProperty1.MyProperty2\n    Type: AWS::EC2::Instance"
+
+    assert yaml_test == yaml_generate
+  end
 end

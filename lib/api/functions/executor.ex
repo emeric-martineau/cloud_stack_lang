@@ -27,6 +27,9 @@ defmodule CloudStackLang.Functions.Executor do
 
       iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'manager'}], [{:string, "hello"}], %{:fct => %{:manager => {:manager, fn _namespace, _args -> {:int, 45} end}}})
       {:int, 45}
+
+      iex> CloudStackLang.Functions.Executor.run([{:name, 1, 'ns1'}, {:name, 1, 'ns2'}, {:name, 1, 'ns3'}], [{:string, "hello"}], %{:fct => %{:ns1 => {:manager, fn _namespace, _args -> {:int, 45} end}}})
+      {:int, 45}
   """
   def run(namespace_call, args, state) do
     fct_entry = get_function_entry(namespace_call, state[:fct])
@@ -90,6 +93,8 @@ defmodule CloudStackLang.Functions.Executor do
   end
 
   defp get_function_entry([_namespace | _tail], nil), do: nil
+
+  defp get_function_entry([_namespace | _tail], {:manager, fct}), do: {:manager, fct}
 
   defp get_function_entry([namespace | tail], functions) do
     {:name, _line, fct_name} = namespace

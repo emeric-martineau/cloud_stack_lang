@@ -23,8 +23,9 @@ defmodule CloudStackLang.Providers.AWS do
       :cidr => {:manager, &aws_fct_manager/2},
       # TODO
       :find_in_map => {:manager, &aws_fct_manager/2},
-      # TODO
       :get_att => {:manager, &aws_fct_manager/2},
+      # Shortcut of get_att
+      :module => {:manager, &aws_fct_manager/2},
       :get_azs => {:manager, &aws_fct_manager/2},
       # TODO
       :import_value => {:manager, &aws_fct_manager/2},
@@ -147,6 +148,47 @@ defmodule CloudStackLang.Providers.AWS do
 
   defp aws_fct_manager([{:name, _line, 'transform'}], args),
     do: wrong_argument("transform", 2, args)
+
+  #################################### GetAtt #################################
+  defp aws_fct_manager([{:name, _line, 'get_att'}], [
+         {:string, logical_name_of_resource},
+         {:string, attribute_name}
+       ]),
+       do:
+         {:module_fct, "get_att",
+          [{:string, logical_name_of_resource}, {:string, attribute_name}]}
+
+  defp aws_fct_manager([{:name, _line, 'get_att'}], [
+         {:atom, logical_name_of_resource},
+         {:string, attribute_name}
+       ]),
+       do:
+         {:module_fct, "get_att", [{:atom, logical_name_of_resource}, {:string, attribute_name}]}
+
+  defp aws_fct_manager([{:name, _line, 'module'} | [module_name | properties]], []) do
+    {:name, _line, m_name} = module_name
+
+    logical_name_of_resource =
+      m_name
+      |> List.to_atom()
+
+    attribute_name =
+      properties
+      |> Enum.map(fn {:name, _line, property_name} ->
+        property_name
+        |> List.to_string()
+        |> Macro.camelize()
+      end)
+      |> Enum.join(".")
+
+    {:module_fct, "get_att", [{:atom, logical_name_of_resource}, {:string, attribute_name}]}
+  end
+
+  defp aws_fct_manager([{:name, _line, 'get_att'}], [_, _]),
+    do: {:error, "Bad type argument for 'get_att'. Waiting ([':string' or ':atom'], ':string')"}
+
+  defp aws_fct_manager([{:name, _line, 'get_att'}], args),
+    do: wrong_argument("get_att", 2, args)
 
   #################################### Error ##################################
   defp wrong_argument(fct_name, nb_args, args),

@@ -198,8 +198,42 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     "\n#{indent}Fn::Transform:\n#{indent}  Name: #{name}\n#{indent}  Parameters:\n#{result}"
   end
 
+  ###################################### GetAtt ###############################
+  defp generate(
+         {:module_fct, "get_att", [{:atom, logical_name_of_resource}, {:string, attribute_name}]},
+         indent
+       ) do
+    name =
+      logical_name_of_resource
+      |> Atom.to_string()
+      |> Macro.camelize()
+
+    result = generate({:array, [{:string, name}, {:string, attribute_name}]}, "#{indent}  ")
+
+    "\n#{indent}Fn::GetAtt:\n#{result}"
+  end
+
+  defp generate(
+         {:module_fct, "get_att",
+          [{:string, logical_name_of_resource}, {:string, attribute_name}]},
+         indent
+       ) do
+    result =
+      generate(
+        {:array, [{:string, logical_name_of_resource}, {:string, attribute_name}]},
+        "#{indent}  "
+      )
+
+    "\n#{indent}Fn::GetAtt:\n#{result}"
+  end
+
   # TODO check atom to make automatic depondson, check also GetAttr
   # TODO allow ref to AWS::xxx variable
   # Fn::GetAZs:
   #   Ref: "AWS::Region"
+  #
+  # ImageId: !FindInMap
+  #        - RegionMap
+  #        - !Ref 'AWS::Region'
+  #        - HVM64
 end
