@@ -567,4 +567,48 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
 
     assert yaml_test == yaml_generate
   end
+
+  test "Call transform method" do
+    text = ~S"""
+    AWS::Resource::EC2::Instance(:my_instance) {
+      availability_zone = "eu-west-1a"
+      image_id = "ami-0713f98de93617bb4"
+      instance_type = "t2.micro"
+      nothing = transform("macro_name" {key1 = "1" key2 = 2})
+    }
+    """
+
+    var_result = %{}
+
+    module_result = [
+      {"MyInstance", ["AWS", "Resource", "EC2", "Instance"],
+       {:map,
+        %{
+          "AvailabilityZone" => {:string, "eu-west-1a"},
+          "ImageId" => {:string, "ami-0713f98de93617bb4"},
+          "InstanceType" => {:string, "t2.micro"},
+          "Nothing" =>
+            {:module_fct, "transform",
+             [string: "macro_name", map: %{"key1" => {:string, "1"}, "key2" => {:int, 2}}]}
+        }}}
+    ]
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+
+    assert state[:vars] == var_result
+    assert state[:modules] == module_result
+
+    yaml_generate = AWS.Yaml.gen(module_result)
+
+    yaml_test =
+      "Resources:\n  MyInstance:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      Nothing: \n        Fn::Transform:\n          Name: macro_name\n          Parameters:\n            key1: 1\n            key2: 2\n    Type: AWS::EC2::Instance"
+
+    assert yaml_test == yaml_generate
+  end
 end

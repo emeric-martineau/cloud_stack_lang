@@ -33,7 +33,6 @@ defmodule CloudStackLang.Providers.AWS do
       :split => {:manager, &aws_fct_manager/2},
       # TODO
       :sub => {:manager, &aws_fct_manager/2},
-      # TODO
       :transform => {:manager, &aws_fct_manager/2}
     }
 
@@ -138,6 +137,16 @@ defmodule CloudStackLang.Providers.AWS do
 
   defp aws_fct_manager([{:name, _line, 'join'}], args),
     do: wrong_argument("join", 2, args)
+
+  #################################### Transform #################################
+  defp aws_fct_manager([{:name, _line, 'transform'}], [{:string, macro_name}, {:map, data}]),
+    do: {:module_fct, "transform", [{:string, macro_name}, {:map, data}]}
+
+  defp aws_fct_manager([{:name, _line, 'transform'}], [_, _]),
+    do: {:error, "Bad type argument for 'transform'. Waiting (':string', ':map')"}
+
+  defp aws_fct_manager([{:name, _line, 'transform'}], args),
+    do: wrong_argument("transform", 2, args)
 
   #################################### Error ##################################
   defp wrong_argument(fct_name, nb_args, args),

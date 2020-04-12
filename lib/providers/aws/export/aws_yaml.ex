@@ -170,7 +170,7 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     "\n#{indent}Fn::Select:\n#{result}"
   end
 
-  #################################### Split #################################
+  #################################### Split ##################################
   defp generate({:module_fct, "split", [{:string, delimiter}, {:string, data}]}, indent) do
     result = generate({:array, [{:string, delimiter}, {:string, data}]}, "#{indent}  ")
 
@@ -183,11 +183,19 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     "\n#{indent}Fn::Split:\n#{result}"
   end
 
-  #################################### Join #################################
+  #################################### Join ###################################
   defp generate({:module_fct, "join", [{:string, delimiter}, {:array, data}]}, indent) do
     result = generate({:array, [{:string, delimiter}, {:array, data}]}, "#{indent}  ")
 
     "\n#{indent}Fn::Join:\n#{result}"
+  end
+
+  #################################### Transform ##############################
+  defp generate({:module_fct, "transform", [{:string, macro_name}, {:map, data}]}, indent) do
+    name = generate({:string, macro_name}, "")
+    result = generate({:map, data}, "#{indent}    ")
+
+    "\n#{indent}Fn::Transform:\n#{indent}  Name: #{name}\n#{indent}  Parameters:\n#{result}"
   end
 
   # TODO check atom to make automatic depondson, check also GetAttr
