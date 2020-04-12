@@ -4,9 +4,6 @@ defmodule CloudStackLang.Parser.FullTest do
 
   test "all valide syntax" do
     text = ~S"""
-    /*
-     * This is a full example
-     */
     // Interger
     int0 = -1
     int1 = 1

@@ -17,7 +17,7 @@ WHITESPACE                = [\s\t\n\r]
 SIMPLE_STRING             = '([^'\\]|\\.)*'
 INTERPOLATE_STRING        = "([^"\\]|\\.)*"
 COMMENT                   = //[^\r|\n]*
-COMMENT_MULTI_LINE        = /\*(.|[\s\t\n\r])+*\*/
+%COMMENT_MULTI_LINE        = /*(?:(?!*/).)+*/
 DIV                       = /[^/*]
 OPEN_MAP                  = \{
 CLOSE_MAP                 = \}
@@ -33,7 +33,7 @@ CLOSE_ARRAY               = \]
 Rules.
 
 {COMMENT}                   : skip_token.
-{COMMENT_MULTI_LINE}        : skip_token.
+%{COMMENT_MULTI_LINE}        : skip_token.
 \+                          : {token, {'+', TokenLine}}.
 \-                          : {token, {'-', TokenLine}}.
 \*                          : {token, {'*', TokenLine}}.

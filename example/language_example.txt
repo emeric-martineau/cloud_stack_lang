@@ -1,7 +1,7 @@
-/*
- * Welcome to Cloud Stack Lang.
- * This file show you full syntaxe.
- */
+//
+// Welcome to Cloud Stack Lang.
+// This file show you full syntaxe.
+//
 
 // We declare a variables that is integer.
 int1 = 0

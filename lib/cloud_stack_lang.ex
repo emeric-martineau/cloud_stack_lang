@@ -25,9 +25,6 @@ defmodule CloudStackLang.Parser do
     iex> CloudStackLang.Parser.parse_and_eval("a = :toto", false, %{}, %{}, %{})
     %{fct: %{}, vars: %{a: {:atom, :toto}}, modules: [], modules_fct: %{}}
 
-    iex> CloudStackLang.Parser.parse_and_eval("/*\nThis is multi line comment\n*/\na = :toto", false, %{}, %{}, %{})
-    %{fct: %{}, vars: %{a: {:atom, :toto}}, modules: [], modules_fct: %{}}
-
     iex> CloudStackLang.Parser.parse_and_eval("// This is single line comment\na = :toto", false, %{}, %{}, %{})
     %{fct: %{}, vars: %{a: {:atom, :toto}}, modules: [], modules_fct: %{}}
 
