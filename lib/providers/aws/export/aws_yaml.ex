@@ -102,6 +102,7 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
       end)
       |> Util.merge_list_of_map()
 
+  ##################################### Ref ###################################
   defp generate({:atom, data}, _indent) do
     ref =
       data

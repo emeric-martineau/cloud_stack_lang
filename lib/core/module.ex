@@ -2,7 +2,7 @@ defmodule CloudStackLang.Core.Module do
   @moduledoc ~S"""
     This module contain some functions for core process module.
 
-    iex> CloudStackLang.Core.Module.convert_list_of_name_to_string([{:name, 1, 'a'}, {:name, 1, 'b'}, {:name, 1, 'c'}])
+    iex> CloudStackLang.Core.Module.convert_list_of_name_to_list_of_string([{:name, 1, 'a'}, {:name, 1, 'b'}, {:name, 1, 'c'}])
     ["a", "b", "c"]
 
     iex> CloudStackLang.Core.Module.convert_all_map_key_to_camelcase({:map, %{"camel_case1" => {:map, %{"camel_case2" => {:array, [{:map, %{"camel_case3" => 1}}]}}}}})
@@ -10,7 +10,7 @@ defmodule CloudStackLang.Core.Module do
   """
   alias CloudStackLang.Core.Util
 
-  def convert_list_of_name_to_string(list),
+  def convert_list_of_name_to_list_of_string(list),
     do:
       list
       |> Enum.map(fn {:name, _line, name} -> name end)

@@ -98,8 +98,18 @@ defmodule CloudStackLang.Parser do
   alias CloudStackLang.Core.Reduce
   alias CloudStackLang.Core.Module
 
+  #
+  # Save the module in state of parser.
+  #
+  # Examples:
+  #
+  #    iex> namespace = [{:name, 1, 'AWS'}, {:name, 1, 'Resource', {:name, 1, 'Type'}}]
+  #    ...> name = {:atom, :my_module}
+  #    ...> properties = %{ "availability_zone" => {:string, "eu-west-1a"}
+  #    ...> save_module_in_state(namespace, name, properties, %{}, [])
+  #
   defp save_module_in_state(namespace, name, properties, state, next_running_code) do
-    cloud_type = Module.convert_list_of_name_to_string(namespace)
+    cloud_type = Module.convert_list_of_name_to_list_of_string(namespace)
 
     new_properties = Module.convert_all_map_key_to_camelcase({:map, properties})
 
@@ -117,6 +127,13 @@ defmodule CloudStackLang.Parser do
     evaluate_tree(next_running_code, new_state)
   end
 
+  #
+  # Evaluate assignation `a = 1`.
+  #
+  # Examples:
+  #
+  #    iex> evaluate_tree([{:assign, {:name, 1, 'variable_name'}, {:float, 32, '1.3'}} | [], %{})
+  #
   defp evaluate_tree([{:assign, {:name, line, variable_name}, variable_expr_value} | tail], state) do
     Reduce.to_value(variable_expr_value, state)
     |> case do
@@ -135,6 +152,13 @@ defmodule CloudStackLang.Parser do
     end
   end
 
+  #
+  # Evaluate calling function.
+  #
+  # Examples:
+  #
+  #    iex> evaluate_tree([{:fct_call, [{:name, 1, 'base64_encode'}], [{:interpolate_string, 71, '"1"'}]} | [], %{})
+  #
   defp evaluate_tree([{:fct_call, namespace, args} | tail], state) do
     Reduce.to_value({:fct_call, namespace, args}, state)
     |> case do
@@ -143,6 +167,34 @@ defmodule CloudStackLang.Parser do
     end
   end
 
+  #
+  # Evaluate module declaration.
+  #
+  # Examples:
+  #
+  #    iex> evaluate_tree(
+  #    [
+  #      {:module,
+  #        [
+  #          {:name, 1, 'AWS'},
+  #          {:name, 1, 'Resource'},
+  #          {:name, 1, 'EC2'},
+  #          {:name, 1, 'Instance'}
+  #        ], {:atom, 1, ':my_instance'},
+  #        {:build_module_map, {:open_map, 1},
+  #          [
+  #            {:module_map_arg, {:name, 2, 'availability_zone'},
+  #              {:interpolate_string, 2, '"eu-west-1a"'}},
+  #            {:module_map_arg, {:name, 3, 'image_id'},
+  #              {:interpolate_string, 3, '"ami-0713f98de93617bb4"'}},
+  #            {:module_map_arg, {:name, 4, 'instance_type'},
+  #              {:interpolate_string, 4, '"t2.micro"'}},
+  #            {:module_map_arg, {:name, 5, 'security_groups'},
+  #              {:fct_call, [{:name, 5, 'ref'}], []}}
+  #          ]}}
+  #      | []
+  #    ], %{})
+  #
   defp evaluate_tree([{:module, namespace, name, map_properties} | tail], state) do
     # Create new state to authorize use name in key of map
     module_state =

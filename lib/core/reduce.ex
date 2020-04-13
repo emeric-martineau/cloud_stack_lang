@@ -11,67 +11,6 @@ defmodule CloudStackLang.Core.Reduce do
   alias CloudStackLang.Map, as: MMap
   alias CloudStackLang.Core.Util
 
-  def check_map_variable({:error, line, msg}, _access_key_list, _state), do: {:error, line, msg}
-
-  def check_map_variable(local_state, access_key_list, state) do
-    # Parse all arguments
-    key_list =
-      Enum.map(access_key_list, fn v ->
-        {_, line, _} = v
-
-        case to_value(v, state) do
-          {:error, line, msg} -> {:error, line, msg}
-          {type, value} -> {type, line, value}
-        end
-      end)
-
-    fct_reduce = fn data -> data end
-
-    Util.call_if_no_error(key_list, fct_reduce, &MMap.reduce/2, [key_list, local_state])
-  end
-
-  def reduce_map_key_name({:map_arg, key, expr}, state) do
-    # In case of module, we wan can use name to key for more readable
-    {_, k} =
-      case key do
-        {:name, _line, value} ->
-          case state[:in_module] do
-            # we are in module, we don't resole variable name
-            true -> {:name, List.to_string(value)}
-            _ -> to_value(key, state)
-          end
-
-        k ->
-          to_value(k, state)
-      end
-
-    {k, to_value(expr, state)}
-  end
-
-  def compute_operation(lhs, rhs, state, function) do
-    lvalue = to_value(lhs, state)
-    rvalue = to_value(rhs, state)
-
-    function.(lvalue, rvalue)
-    |> case do
-      {:error, msg} ->
-        {_, line, _} = lhs
-
-        # Sorry, it's ugly code. But in case of error lhs can be {:add_op, {:interpolate_string, 2, '"trtrt"'}, {:int, 2, '3'}}
-        # or can be {:interpolate_string, 2, '"trtrt"'}
-        case line do
-          {_, l, _} ->
-            {:error, l, msg}
-
-          l ->
-            {:error, l, msg}
-        end
-
-      r ->
-        r
-    end
-  end
-
   def to_value({:simple_string, _line, value}, _state) do
     s =
       value
@@ -172,21 +111,26 @@ defmodule CloudStackLang.Core.Reduce do
     end
   end
 
-  def to_value({:add_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Add.reduce/2)
+  def to_value({:add_op, left_number, right_number}, state),
+    do: compute_operation(left_number, right_number, state, &Add.reduce/2)
 
-  def to_value({:sub_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Sub.reduce/2)
+  def to_value({:sub_op, left_number, right_number}, state),
+    do: compute_operation(left_number, right_number, state, &Sub.reduce/2)
 
-  def to_value({:mul_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Mul.reduce/2)
+  def to_value({:mul_op, left_number, right_number}, state),
+    do: compute_operation(left_number, right_number, state, &Mul.reduce/2)
 
-  def to_value({:div_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Div.reduce/2)
+  def to_value({:div_op, left_number, right_number}, state),
+    do: compute_operation(left_number, right_number, state, &Div.reduce/2)
 
-  def to_value({:exp_op, lhs, rhs}, state), do: compute_operation(lhs, rhs, state, &Exp.reduce/2)
+  def to_value({:exp_op, left_number, right_number}, state),
+    do: compute_operation(left_number, right_number, state, &Exp.reduce/2)
 
   def to_value({:map_get, var_name, access_key_list}, state),
     # Get variable value
     do:
       to_value(var_name, state)
-      |> check_map_variable(access_key_list, state)
+      |> get_map_value(access_key_list, state)
 
   def to_value({:parenthesis, expr}, state), do: to_value(expr, state)
 
@@ -203,5 +147,88 @@ defmodule CloudStackLang.Core.Reduce do
       line,
       state
     ])
+  end
+
+  # Get value of map by key or value of array
+  defp get_map_value({:error, line, msg}, _access_key_list, _state), do: {:error, line, msg}
+
+  #
+  # Get value of map by key or value of array.
+  # `state` is parser state
+  #
+  # get_map_value(
+  #   {:array,
+  #     [array: [int: 1, float: 1.3]]
+  #   },
+  #   [
+  #     {:int, 67, '0'},
+  #     {:int, 67, '1'}
+  #   ])
+  #
+  # get_map_value(
+  #   {:map,
+  #     %{"eee" => {:string, "ererere"}}
+  #   },
+  #   [{:name, 5, 'e'}])
+  #
+  defp get_map_value(root_map_value, access_key_list, state) do
+    # Parse all arguments
+    key_list =
+      Enum.map(access_key_list, fn v ->
+        {_, line, _} = v
+
+        case to_value(v, state) do
+          {:error, line, msg} -> {:error, line, msg}
+          {type, value} -> {type, line, value}
+        end
+      end)
+
+    fct_reduce = fn data -> data end
+
+    Util.call_if_no_error(key_list, fct_reduce, &MMap.reduce/2, [key_list, root_map_value])
+  end
+
+  # Reduce key of map.
+  defp reduce_map_key_name({:map_arg, key, expr}, state) do
+    # In case of module, we wan can use name to key for more readable
+    {_, k} =
+      case key do
+        {:name, _line, value} ->
+          case state[:in_module] do
+            # we are in module, we don't resole variable name
+            true -> {:name, List.to_string(value)}
+            _ -> to_value(key, state)
+          end
+
+        k ->
+          to_value(k, state)
+      end
+
+    {k, to_value(expr, state)}
+  end
+
+  # Commun function to do operation like +, -, /, *
+  defp compute_operation(left_number, right_number, state, function) do
+    lvalue = to_value(left_number, state)
+    rvalue = to_value(right_number, state)
+
+    function.(lvalue, rvalue)
+    |> case do
+      {:error, msg} ->
+        {_, line, _} = left_number
+
+        # Sorry, it's ugly code. But in case of error `left_number` can be {:add_op, {:interpolate_string, 2, '"trtrt"'}, {:int, 2, '3'}}
+        # or can be {:interpolate_string, 2, '"trtrt"'}
+        case line do
+          {_, l, _} ->
+            {:error, l, msg}
+
+          l ->
+            {:error, l, msg}
+        end
+
+      r ->
+        r
+    end
   end
 end
