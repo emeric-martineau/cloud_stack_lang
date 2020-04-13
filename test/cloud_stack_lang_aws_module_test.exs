@@ -41,7 +41,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     yaml_generate = AWS.Yaml.gen(module_result)
 
     yaml_test =
-      "Resources:\n  MyInstance:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      SecurityGroups: !Ref SshSecurityGroup\n    Type: AWS::EC2::Instance"
+      "Resources:\n  MyInstance:\n    DependsOn: SshSecurityGroup\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      SecurityGroups: !Ref SshSecurityGroup\n    Type: AWS::EC2::Instance"
 
     assert yaml_test == yaml_generate
   end
@@ -145,7 +145,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     yaml_generate = AWS.Yaml.gen(module_result)
 
     yaml_test =
-      "Resources:\n  MyInstance:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      SecurityGroups: !Ref SshSecurityGroup\n    Type: AWS::EC2::Instance"
+      "Resources:\n  MyInstance:\n    DependsOn: SshSecurityGroup\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      SecurityGroups: !Ref SshSecurityGroup\n    Type: AWS::EC2::Instance"
 
     assert yaml_test == yaml_generate
   end
@@ -187,7 +187,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     yaml_generate = AWS.Yaml.gen(module_result)
 
     yaml_test =
-      "Resources:\n  MyInstance:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      SecurityGroups: !Ref SshSecurityGroup\n    Type: AWS::EC2::Instance"
+      "Resources:\n  MyInstance:\n    DependsOn: SshSecurityGroup\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      SecurityGroups: !Ref SshSecurityGroup\n    Type: AWS::EC2::Instance"
 
     assert yaml_test == yaml_generate
   end

@@ -17,7 +17,7 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
 
     iex> module = %{"a" => {:map, %{"a" => {:int, 1}, "b" => {:int, 2}, "c" => {:array, [{:int, 0}, {:int, 1}]}}}, "b" => {:atom, :hello}}
     ...> CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
-    "Resources:\n  YouKnowMyName:\n    Properties:\n      a:\n        a: 1\n        b: 2\n        c:\n          - 0\n          - 1\n      b: !Ref Hello\n    Type: AWS::TheType"
+    "Resources:\n  YouKnowMyName:\n    DependsOn: Hello\n    Properties:\n      a:\n        a: 1\n        b: 2\n        c:\n          - 0\n          - 1\n      b: !Ref Hello\n    Type: AWS::TheType"
 
     iex> module = %{"a" => {:string, ":Thing"}}
     ...> CloudStackLang.Providers.AWS.Yaml.gen([{"YouKnowMyName", ["AWS", "Resource", "TheType"], {:map, module}}])
@@ -42,12 +42,15 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
   """
   use CloudStackLang.Export.Yaml
   alias CloudStackLang.Core.Util
+  alias CloudStackLang.Providers.AWS.DependencyManager
 
   def gen(modules) do
     yaml_aws_resources =
       modules
       |> filter_by_type("Resource")
       |> generate_aws_resources_map
+
+    # TODO check dependencies if found in map
 
     #    AWS :: Stack
     yaml_aws_global =
@@ -75,23 +78,7 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
   defp generate_aws_resources_map(aws_resources),
     do:
       aws_resources
-      |> Enum.map(fn {resource_name, namespace, resource_properties} ->
-        [prefixe_ns, _domain | tail] = namespace
-
-        # Remove "Resource" and generate type
-        resource_type =
-          [prefixe_ns | tail]
-          |> Enum.join("::")
-
-        {
-          resource_name,
-          {:map,
-           %{
-             "Type" => {:string, resource_type},
-             "Properties" => resource_properties
-           }}
-        }
-      end)
+      |> Enum.map(&generate_one_aws_resources/1)
       |> Map.new()
 
   defp generate_aws_global_map(aws_resources),
@@ -101,6 +88,43 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
         resource_properties
       end)
       |> Util.merge_list_of_map()
+
+  defp generate_one_aws_resources({resource_name, namespace, resource_properties}) do
+    [prefixe_ns, _domain | tail] = namespace
+
+    # Remove "Resource" and generate type
+    resource_type =
+      [prefixe_ns | tail]
+      |> Enum.join("::")
+
+    # Create AWS resource attributs in map
+    resource_attributs = %{
+      "Type" => {:string, resource_type},
+      "Properties" => resource_properties
+    }
+
+    # Generate dependencies and if found, add into resource_attributs
+    resource_attributs =
+      case DependencyManager.gen(resource_properties) do
+        [] ->
+          resource_attributs
+
+        [one_dependency] ->
+          Map.put_new(resource_attributs, "DependsOn", {:string, one_dependency})
+
+        multi_dependencies ->
+          deps =
+            multi_dependencies
+            |> Enum.map(fn dep -> {:string, dep} end)
+
+          Map.put_new(resource_attributs, "DependsOn", {:array, deps})
+      end
+
+    {
+      resource_name,
+      {:map, resource_attributs}
+    }
+  end
 
   ##################################### Ref ###################################
   defp generate({:atom, data}, _indent) do

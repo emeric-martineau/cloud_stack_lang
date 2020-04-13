@@ -24,12 +24,14 @@ AWS::Resource::EC2::Subnet(:example_subnet) {
         select(
           0
           // First method:
-          // get_att(:example_vpc "Ipv6CidrBlocks")
+          //   get_att(:example_vpc "Ipv6CidrBlocks")
           //
           // Second method:
-          // get_att('ExampleVpc' "Ipv6CidrBlocks")
-          // module.example_vpc.ipv6_cidr_block()
-          module.example_vpc.ipv6_cidr_block())
+          //   get_att('ExampleVpc' "Ipv6CidrBlocks")
+          //
+          // Third method:
+          //   module.example_vpc.ipv6_cidr_block()
+          module.example_vpc.ipv6_cidr_blocks())
         1
         64))
   vpc_id = :example_vpc
