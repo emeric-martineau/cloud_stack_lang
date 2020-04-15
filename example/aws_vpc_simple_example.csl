@@ -9,6 +9,7 @@ AWS::Resource::EC2::VPCCidrBlock(:ipv6_cidr_block) {
 
 
 AWS::Resource::EC2::Subnet(:example_subnet) {
+  depends_on = :ipv6_cidr_block
   assign_ipv6_address_on_creation = true
   cidr_block =
     select(

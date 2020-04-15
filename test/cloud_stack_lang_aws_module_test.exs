@@ -49,28 +49,28 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
   test "Create AWS module global param" do
     text = ~S"""
     AWS::Stack(:void) {
-    // Convert to
-    // Metadata:
-    //   Instances:
-    //     Description: "Information about the instances"
-    //   Databases:
-    //     Description: "Information about the databases"
-    metadata = {
-    instances = "Information about the instances"
-    databases = "Information about the databases"
+      // Convert to
+      // Metadata:
+      //   Instances:
+      //     Description: "Information about the instances"
+      //   Databases:
+      //     Description: "Information about the databases"
+      metadata = {
+      instances = "Information about the instances"
+      databases = "Information about the databases"
     }
     // Convert to Transform: [MyMacro, AWS::Serverless]
-    transform = [
-    "MyMacro"
-    "AWS::Serverless"
-    ]
+      transform = [
+      "MyMacro"
+      "AWS::Serverless"
+      ]
     }
 
     AWS::Stack(:void) {
-    // Convert to AWSTemplateFormatVersion: "2010-09-09"
-    version = "2010-09-09-2"
-    // Convert to Description: "my description"
-    description = "my description-2"
+      // Convert to AWSTemplateFormatVersion: "2010-09-09"
+      version = "2010-09-09-2"
+      // Convert to Description: "my description"
+      description = "my description-2"
     }
     """
 
@@ -342,10 +342,10 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "ImageId" => {:string, "ami-0713f98de93617bb4"},
           "InstanceType" => {:string, "t2.micro"},
           "SecurityGroups" =>
-            {:module_fct, "cidr", [{:string, "192.168.0.0/24"}, {:int, 6}, {:int, 5}]},
+            {:module_fct, "cidr", {:array, [{:string, "192.168.0.0/24"}, {:int, 6}, {:int, 5}]}},
           "Nothing" =>
             {:module_fct, "cidr",
-             [{:module_fct, "base64", {:string, "cool"}}, {:int, 6}, {:int, 5}]}
+             {:array, [{:module_fct, "base64", {:string, "cool"}}, {:int, 6}, {:int, 5}]}}
         }}}
     ]
 
@@ -390,7 +390,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "InstanceType" => {:string, "t2.micro"},
           "SecurityGroups" =>
             {:module_fct, "get_azs",
-             {:module_fct, "cidr", [{:string, "192.168.0.0/24"}, {:int, 6}, {:int, 5}]}},
+             {:module_fct, "cidr", {:array, [{:string, "192.168.0.0/24"}, {:int, 6}, {:int, 5}]}}},
           "Nothing" => {:module_fct, "get_azs", {:string, ""}}
         }}}
     ]
@@ -436,12 +436,15 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "InstanceType" => {:string, "t2.micro"},
           "SecurityGroups" =>
             {:module_fct, "select",
-             [
-               {:int, 0},
-               {:module_fct, "cidr", [{:string, "192.168.0.0/24"}, {:int, 6}, {:int, 5}]}
-             ]},
+             {:array,
+              [
+                {:int, 0},
+                {:module_fct, "cidr",
+                 {:array, [{:string, "192.168.0.0/24"}, {:int, 6}, {:int, 5}]}}
+              ]}},
           "Nothing" =>
-            {:module_fct, "select", [{:int, 0}, {:array, [{:int, 1}, {:int, 2}, {:int, 3}]}]}
+            {:module_fct, "select",
+             {:array, [{:int, 0}, {:array, [{:int, 1}, {:int, 2}, {:int, 3}]}]}}
         }}}
     ]
 
@@ -486,11 +489,13 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "InstanceType" => {:string, "t2.micro"},
           "SecurityGroups" =>
             {:module_fct, "split",
-             [
-               {:string, ","},
-               {:module_fct, "cidr", [{:string, "192.168.0.0/24"}, {:int, 6}, {:int, 5}]}
-             ]},
-          "Nothing" => {:module_fct, "split", [{:string, "0"}, {:string, "[1 2 3]"}]}
+             {:array,
+              [
+                {:string, ","},
+                {:module_fct, "cidr",
+                 {:array, [{:string, "192.168.0.0/24"}, {:int, 6}, {:int, 5}]}}
+              ]}},
+          "Nothing" => {:module_fct, "split", {:array, [{:string, "0"}, {:string, "[1 2 3]"}]}}
         }}}
     ]
 
@@ -533,18 +538,20 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "AvailabilityZone" => {:string, "eu-west-1a"},
           "ImageId" => {:string, "ami-0713f98de93617bb4"},
           "InstanceType" => {:string, "t2.micro"},
-          "Nothing" => {:module_fct, "join", [string: ",", array: [int: 1, int: 2, int: 3]]},
+          "Nothing" =>
+            {:module_fct, "join", {:array, [string: ",", array: [int: 1, int: 2, int: 3]]}},
           "SecurityGroups" => {
             :module_fct,
             "join",
-            [
-              string: ",",
-              array: [
-                {:string, "a"},
-                {:module_fct, "cidr", [string: "192.168.0.0/24", int: 6, int: 5]},
-                {:string, "b"}
-              ]
-            ]
+            {:array,
+             [
+               string: ",",
+               array: [
+                 {:string, "a"},
+                 {:module_fct, "cidr", {:array, [string: "192.168.0.0/24", int: 6, int: 5]}},
+                 {:string, "b"}
+               ]
+             ]}
           }
         }}}
     ]
@@ -589,7 +596,8 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "InstanceType" => {:string, "t2.micro"},
           "Nothing" =>
             {:module_fct, "transform",
-             [string: "macro_name", map: %{"key1" => {:string, "1"}, "key2" => {:int, 2}}]}
+             {:array,
+              [string: "macro_name", map: %{"key1" => {:string, "1"}, "key2" => {:int, 2}}]}}
         }}}
     ]
 
@@ -612,7 +620,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     assert yaml_test == yaml_generate
   end
 
-  test "Call transform get_arr with all string" do
+  test "Call transform get_att with all string" do
     text = ~S"""
     AWS::Resource::EC2::Instance(:my_instance) {
       availability_zone = "eu-west-1a"
@@ -632,7 +640,8 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "ImageId" => {:string, "ami-0713f98de93617bb4"},
           "InstanceType" => {:string, "t2.micro"},
           "Nothing" =>
-            {:module_fct, "get_att", [string: "MyInstance", string: "MyProperty1.MyProperty2"]}
+            {:module_fct, "get_att",
+             {:array, [string: "MyInstance", string: "MyProperty1.MyProperty2"]}}
         }}}
     ]
 
@@ -655,7 +664,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     assert yaml_test == yaml_generate
   end
 
-  test "Call transform get_arr with atom and string" do
+  test "Call transform get_att with atom and string" do
     text = ~S"""
     AWS::Resource::EC2::Instance(:my_instance0) {
       availability_zone = "eu-west-1a"
@@ -679,7 +688,8 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "ImageId" => {:string, "ami-0713f98de93617bb4"},
           "InstanceType" => {:string, "t2.micro"},
           "Nothing" =>
-            {:module_fct, "get_att", [atom: :my_instance0, string: "MyProperty1.MyProperty2"]}
+            {:module_fct, "get_att",
+             {:array, [atom: :my_instance0, string: "MyProperty1.MyProperty2"]}}
         }}},
       {"MyInstance0", ["AWS", "Resource", "EC2", "Instance"],
        {:map, %{"AvailabilityZone" => {:string, "eu-west-1a"}}}}
@@ -699,12 +709,12 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     yaml_generate = AWS.Yaml.gen(module_result)
 
     yaml_test =
-      "Resources:\n  MyInstance0:\n    Properties:\n      AvailabilityZone: eu-west-1a\n    Type: AWS::EC2::Instance\n  MyInstance1:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      Nothing: \n        Fn::GetAtt:\n          - MyInstance0\n          - MyProperty1.MyProperty2\n    Type: AWS::EC2::Instance"
+      "Resources:\n  MyInstance0:\n    Properties:\n      AvailabilityZone: eu-west-1a\n    Type: AWS::EC2::Instance\n  MyInstance1:\n    DependsOn: MyInstance0\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      Nothing: \n        Fn::GetAtt:\n          - MyInstance0\n          - MyProperty1.MyProperty2\n    Type: AWS::EC2::Instance"
 
     assert yaml_test == yaml_generate
   end
 
-  test "Call transform get_arr with module call form" do
+  test "Call transform get_att with module call form" do
     text = ~S"""
     AWS::Resource::EC2::Instance(:my_instance0) {
       availability_zone = "eu-west-1a"
@@ -728,7 +738,8 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "ImageId" => {:string, "ami-0713f98de93617bb4"},
           "InstanceType" => {:string, "t2.micro"},
           "Nothing" =>
-            {:module_fct, "get_att", [atom: :my_instance0, string: "MyProperty1.MyProperty2"]}
+            {:module_fct, "get_att",
+             {:array, [atom: :my_instance0, string: "MyProperty1.MyProperty2"]}}
         }}},
       {"MyInstance0", ["AWS", "Resource", "EC2", "Instance"],
        {:map, %{"AvailabilityZone" => {:string, "eu-west-1a"}}}}
@@ -748,7 +759,50 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     yaml_generate = AWS.Yaml.gen(module_result)
 
     yaml_test =
-      "Resources:\n  MyInstance0:\n    Properties:\n      AvailabilityZone: eu-west-1a\n    Type: AWS::EC2::Instance\n  MyInstance1:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      Nothing: \n        Fn::GetAtt:\n          - MyInstance0\n          - MyProperty1.MyProperty2\n    Type: AWS::EC2::Instance"
+      "Resources:\n  MyInstance0:\n    Properties:\n      AvailabilityZone: eu-west-1a\n    Type: AWS::EC2::Instance\n  MyInstance1:\n    DependsOn: MyInstance0\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      Nothing: \n        Fn::GetAtt:\n          - MyInstance0\n          - MyProperty1.MyProperty2\n    Type: AWS::EC2::Instance"
+
+    assert yaml_test == yaml_generate
+  end
+
+  test "Check deponds on" do
+    text = ~S"""
+    AWS::Resource::EC2::Instance(:my_instance0) {
+      availability_zone = "eu-west-1a"
+    }
+
+    // Generate automaticaly depends on
+    AWS::Resource::EC2::Instance(:my_instance1) {
+      nothing = module.my_instance0.my_property1.my_property2()
+    }
+
+    // Generate manually depends on (atom)
+    AWS::Resource::EC2::Instance(:my_instance2) {
+      depends_on = :my_instance0
+    }
+
+    // Generate manually depends on (array)
+    AWS::Resource::EC2::Instance(:my_instance3) {
+      depends_on = [:my_instance0 :my_instance1]
+    }
+
+    // Generate manually and automatically depends on
+    AWS::Resource::EC2::Instance(:my_instance4) {
+      depends_on = :my_instance1
+      nothing = module.my_instance0.my_property1.my_property2()
+    }
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+    yaml_generate = AWS.Yaml.gen(state[:modules])
+
+    yaml_test =
+      "Resources:\n  MyInstance0:\n    Properties:\n      AvailabilityZone: eu-west-1a\n    Type: AWS::EC2::Instance\n  MyInstance1:\n    DependsOn: MyInstance0\n    Properties:\n      Nothing: \n        Fn::GetAtt:\n          - MyInstance0\n          - MyProperty1.MyProperty2\n    Type: AWS::EC2::Instance\n  MyInstance2:\n    DependsOn: MyInstance0\n    Type: AWS::EC2::Instance\n  MyInstance3:\n    DependsOn:\n      - MyInstance0\n      - MyInstance1\n    Type: AWS::EC2::Instance\n  MyInstance4:\n    DependsOn:\n      - MyInstance1\n      - MyInstance0\n    Properties:\n      Nothing: \n        Fn::GetAtt:\n          - MyInstance0\n          - MyProperty1.MyProperty2\n    Type: AWS::EC2::Instance"
 
     assert yaml_test == yaml_generate
   end

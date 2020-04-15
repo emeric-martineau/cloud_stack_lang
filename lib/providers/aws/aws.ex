@@ -68,7 +68,7 @@ defmodule CloudStackLang.Providers.AWS do
          {:int, count},
          {:int, cidr_bits}
        ]) do
-    {:module_fct, "cidr", [{:string, ip_block}, {:int, count}, {:int, cidr_bits}]}
+    {:module_fct, "cidr", {:array, [{:string, ip_block}, {:int, count}, {:int, cidr_bits}]}}
   end
 
   defp aws_fct_manager([{:name, _line, 'cidr'}], [
@@ -76,7 +76,7 @@ defmodule CloudStackLang.Providers.AWS do
          {:int, count},
          {:int, cidr_bits}
        ]) do
-    {:module_fct, "cidr", [{:module_fct, fct, data}, {:int, count}, {:int, cidr_bits}]}
+    {:module_fct, "cidr", {:array, [{:module_fct, fct, data}, {:int, count}, {:int, cidr_bits}]}}
   end
 
   defp aws_fct_manager([{:name, _line, 'cidr'}], [_, _, _]),
@@ -105,10 +105,10 @@ defmodule CloudStackLang.Providers.AWS do
 
   #################################### Select #################################
   defp aws_fct_manager([{:name, _line, 'select'}], [{:int, index}, {:module_fct, fct, data}]),
-    do: {:module_fct, "select", [{:int, index}, {:module_fct, fct, data}]}
+    do: {:module_fct, "select", {:array, [{:int, index}, {:module_fct, fct, data}]}}
 
   defp aws_fct_manager([{:name, _line, 'select'}], [{:int, index}, {:array, data}]),
-    do: {:module_fct, "select", [{:int, index}, {:array, data}]}
+    do: {:module_fct, "select", {:array, [{:int, index}, {:array, data}]}}
 
   defp aws_fct_manager([{:name, _line, 'select'}], [_, _]),
     do: {:error, "Bad type argument for 'select'. Waiting (':int', [':array' or function call])"}
@@ -118,10 +118,10 @@ defmodule CloudStackLang.Providers.AWS do
 
   #################################### Split #################################
   defp aws_fct_manager([{:name, _line, 'split'}], [{:string, delimiter}, {:string, data}]),
-    do: {:module_fct, "split", [{:string, delimiter}, {:string, data}]}
+    do: {:module_fct, "split", {:array, [{:string, delimiter}, {:string, data}]}}
 
   defp aws_fct_manager([{:name, _line, 'split'}], [{:string, delimiter}, {:module_fct, fct, data}]),
-       do: {:module_fct, "split", [{:string, delimiter}, {:module_fct, fct, data}]}
+       do: {:module_fct, "split", {:array, [{:string, delimiter}, {:module_fct, fct, data}]}}
 
   defp aws_fct_manager([{:name, _line, 'split'}], [_, _]),
     do: {:error, "Bad type argument for 'split'. Waiting (':string', function call)"}
@@ -131,7 +131,7 @@ defmodule CloudStackLang.Providers.AWS do
 
   #################################### Join #################################
   defp aws_fct_manager([{:name, _line, 'join'}], [{:string, delimiter}, {:array, data}]),
-    do: {:module_fct, "join", [{:string, delimiter}, {:array, data}]}
+    do: {:module_fct, "join", {:array, [{:string, delimiter}, {:array, data}]}}
 
   defp aws_fct_manager([{:name, _line, 'join'}], [_, _]),
     do: {:error, "Bad type argument for 'join'. Waiting (':string', ':array')"}
@@ -141,7 +141,7 @@ defmodule CloudStackLang.Providers.AWS do
 
   #################################### Transform #################################
   defp aws_fct_manager([{:name, _line, 'transform'}], [{:string, macro_name}, {:map, data}]),
-    do: {:module_fct, "transform", [{:string, macro_name}, {:map, data}]}
+    do: {:module_fct, "transform", {:array, [{:string, macro_name}, {:map, data}]}}
 
   defp aws_fct_manager([{:name, _line, 'transform'}], [_, _]),
     do: {:error, "Bad type argument for 'transform'. Waiting (':string', ':map')"}
@@ -156,14 +156,15 @@ defmodule CloudStackLang.Providers.AWS do
        ]),
        do:
          {:module_fct, "get_att",
-          [{:string, logical_name_of_resource}, {:string, attribute_name}]}
+          {:array, [{:string, logical_name_of_resource}, {:string, attribute_name}]}}
 
   defp aws_fct_manager([{:name, _line, 'get_att'}], [
          {:atom, logical_name_of_resource},
          {:string, attribute_name}
        ]),
        do:
-         {:module_fct, "get_att", [{:atom, logical_name_of_resource}, {:string, attribute_name}]}
+         {:module_fct, "get_att",
+          {:array, [{:atom, logical_name_of_resource}, {:string, attribute_name}]}}
 
   defp aws_fct_manager([{:name, _line, 'module'} | [module_name | properties]], []) do
     {:name, _line, m_name} = module_name
@@ -181,7 +182,8 @@ defmodule CloudStackLang.Providers.AWS do
       end)
       |> Enum.join(".")
 
-    {:module_fct, "get_att", [{:atom, logical_name_of_resource}, {:string, attribute_name}]}
+    {:module_fct, "get_att",
+     {:array, [{:atom, logical_name_of_resource}, {:string, attribute_name}]}}
   end
 
   defp aws_fct_manager([{:name, _line, 'get_att'}], [_, _]),

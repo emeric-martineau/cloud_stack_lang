@@ -97,34 +97,52 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
       [prefixe_ns | tail]
       |> Enum.join("::")
 
+    # Extract resource attributs
+    {:map, props} = resource_properties
+
+    # By using :atom, depends on can by generate automatically include `depends_on` properties
+    depends_on = DependencyManager.generate_depends_on_properties(resource_properties)
+    props = Map.delete(props, "DependsOn")
+
     # Create AWS resource attributs in map
-    resource_attributs = %{
-      "Type" => {:string, resource_type},
-      "Properties" => resource_properties
-    }
-
-    # Generate dependencies and if found, add into resource_attributs
     resource_attributs =
-      case DependencyManager.gen(resource_properties) do
-        [] ->
-          resource_attributs
-
-        [one_dependency] ->
-          Map.put_new(resource_attributs, "DependsOn", {:string, one_dependency})
-
-        multi_dependencies ->
-          deps =
-            multi_dependencies
-            |> Enum.map(fn dep -> {:string, dep} end)
-
-          Map.put_new(resource_attributs, "DependsOn", {:array, deps})
-      end
+      %{
+        "Type" => {:string, resource_type}
+      }
+      |> add_ressource_attribut_if_not_empty("DependsOn", depends_on)
+      |> add_ressource_attribut_if_not_empty("Properties", props)
 
     {
       resource_name,
       {:map, resource_attributs}
     }
   end
+
+  defp add_ressource_attribut_if_not_empty(map, _key, []), do: map
+
+  defp add_ressource_attribut_if_not_empty(map, key, data) when is_list(data),
+    do: Map.merge(map, %{key => {:array, data}})
+
+  defp add_ressource_attribut_if_not_empty(map, _key, data)
+       when is_map(data) and map_size(data) == 0,
+       do: map
+
+  defp add_ressource_attribut_if_not_empty(map, key, data) when is_map(data),
+    do: Map.merge(map, %{key => {:map, data}})
+
+  defp add_ressource_attribut_if_not_empty(map, _key, nil), do: map
+
+  # Not a map or list
+  defp add_ressource_attribut_if_not_empty(map, key, data), do: Map.merge(map, %{key => data})
+
+  # Get value and delete it.
+  # return {map, value}
+  # defp map_get_and_delete(map, key) do
+  #  value = Map.get(map, key, nil)
+  # new_map = Map.delete(map, key)
+  #
+  #  {new_map, value}
+  # end
 
   ##################################### Ref ###################################
   defp generate({:atom, data}, _indent) do
@@ -149,7 +167,7 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
 
   #################################### Cidr ###################################
   defp generate(
-         {:module_fct, "cidr", [{:string, ip_block}, {:int, count}, {:int, cidr_bits}]},
+         {:module_fct, "cidr", {:array, [{:string, ip_block}, {:int, count}, {:int, cidr_bits}]}},
          indent
        ) do
     result =
@@ -159,7 +177,8 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
   end
 
   defp generate(
-         {:module_fct, "cidr", [{:module_fct, fct, data}, {:int, count}, {:int, cidr_bits}]},
+         {:module_fct, "cidr",
+          {:array, [{:module_fct, fct, data}, {:int, count}, {:int, cidr_bits}]}},
          indent
        ) do
     result =
@@ -183,40 +202,49 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
   end
 
   #################################### Select #################################
-  defp generate({:module_fct, "select", [{:int, index}, {:array, data}]}, indent) do
+  defp generate({:module_fct, "select", {:array, [{:int, index}, {:array, data}]}}, indent) do
     result = generate({:array, [{:int, index}, {:array, data}]}, "#{indent}  ")
 
     "\n#{indent}Fn::Select:\n#{result}"
   end
 
-  defp generate({:module_fct, "select", [{:int, index}, {:module_fct, fct, data}]}, indent) do
+  defp generate(
+         {:module_fct, "select", {:array, [{:int, index}, {:module_fct, fct, data}]}},
+         indent
+       ) do
     result = generate({:array, [{:int, index}, {:module_fct, fct, data}]}, "#{indent}  ")
 
     "\n#{indent}Fn::Select:\n#{result}"
   end
 
   #################################### Split ##################################
-  defp generate({:module_fct, "split", [{:string, delimiter}, {:string, data}]}, indent) do
+  defp generate({:module_fct, "split", {:array, [{:string, delimiter}, {:string, data}]}}, indent) do
     result = generate({:array, [{:string, delimiter}, {:string, data}]}, "#{indent}  ")
 
     "\n#{indent}Fn::Split:\n#{result}"
   end
 
-  defp generate({:module_fct, "split", [{:string, delimiter}, {:module_fct, fct, data}]}, indent) do
+  defp generate(
+         {:module_fct, "split", {:array, [{:string, delimiter}, {:module_fct, fct, data}]}},
+         indent
+       ) do
     result = generate({:array, [{:string, delimiter}, {:module_fct, fct, data}]}, "#{indent}  ")
 
     "\n#{indent}Fn::Split:\n#{result}"
   end
 
   #################################### Join ###################################
-  defp generate({:module_fct, "join", [{:string, delimiter}, {:array, data}]}, indent) do
+  defp generate({:module_fct, "join", {:array, [{:string, delimiter}, {:array, data}]}}, indent) do
     result = generate({:array, [{:string, delimiter}, {:array, data}]}, "#{indent}  ")
 
     "\n#{indent}Fn::Join:\n#{result}"
   end
 
   #################################### Transform ##############################
-  defp generate({:module_fct, "transform", [{:string, macro_name}, {:map, data}]}, indent) do
+  defp generate(
+         {:module_fct, "transform", {:array, [{:string, macro_name}, {:map, data}]}},
+         indent
+       ) do
     name = generate({:string, macro_name}, "")
     result = generate({:map, data}, "#{indent}    ")
 
@@ -225,7 +253,8 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
 
   ###################################### GetAtt ###############################
   defp generate(
-         {:module_fct, "get_att", [{:atom, logical_name_of_resource}, {:string, attribute_name}]},
+         {:module_fct, "get_att",
+          {:array, [{:atom, logical_name_of_resource}, {:string, attribute_name}]}},
          indent
        ) do
     name =
@@ -240,7 +269,7 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
 
   defp generate(
          {:module_fct, "get_att",
-          [{:string, logical_name_of_resource}, {:string, attribute_name}]},
+          {:array, [{:string, logical_name_of_resource}, {:string, attribute_name}]}},
          indent
        ) do
     result =
