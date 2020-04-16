@@ -835,6 +835,12 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           wait_on_resource_signals = true
         }
       }
+
+      deletion_policy = "hello"
+      update_replace_policy = "hello2"
+      metadata = {
+        obj1 = "something"
+      }
     }
     """
 
@@ -848,7 +854,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     yaml_generate = AWS.Yaml.gen(state[:modules])
 
     yaml_test =
-      "Resources:\n  AutoScalingGroup:\n    CreationPolicy:\n      ResourceSignal:\n        Count: 3\n        Timeout: PT15M\n    DependsOn: LaunchConfig\n    Properties:\n      AvailabilityZones: \n        Fn::GetAZs: \"\"\n      DesiredCapacity: 3\n      LaunchConfigurationName: !Ref LaunchConfig\n      MaxSize: 4\n      MinSize: 1\n    Type: AWS::AutoScaling::AutoScalingGroup\n    UpdatePolicy:\n      AutoScalingRollingUpdate:\n        MaxBatchSize: 2\n        MinInstancesInService: 1\n        PauseTime: PT1M\n        WaitOnResourceSignals: true\n      AutoScalingScheduledAction:\n        IgnoreUnmodifiedGroupSizeProperties: true"
+      "Resources:\n  AutoScalingGroup:\n    CreationPolicy:\n      ResourceSignal:\n        Count: 3\n        Timeout: PT15M\n    DeletionPolicy: hello\n    DependsOn: LaunchConfig\n    Metadata:\n      Obj1: something\n    Properties:\n      AvailabilityZones: \n        Fn::GetAZs: \"\"\n      DesiredCapacity: 3\n      LaunchConfigurationName: !Ref LaunchConfig\n      MaxSize: 4\n      MinSize: 1\n    Type: AWS::AutoScaling::AutoScalingGroup\n    UpdatePolicy:\n      AutoScalingRollingUpdate:\n        MaxBatchSize: 2\n        MinInstancesInService: 1\n        PauseTime: PT1M\n        WaitOnResourceSignals: true\n      AutoScalingScheduledAction:\n        IgnoreUnmodifiedGroupSizeProperties: true\n    UpdateReplacePolicy: hello2"
 
     assert yaml_test == yaml_generate
   end

@@ -111,6 +111,9 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
 
     {props, creation_policy} = map_get_and_delete(props, "CreationPolicy")
     {props, update_policy} = map_get_and_delete(props, "UpdatePolicy")
+    {props, deletion_policy} = map_get_and_delete(props, "DeletionPolicy")
+    {props, update_replace_policy} = map_get_and_delete(props, "UpdateReplacePolicy")
+    {props, metadata} = map_get_and_delete(props, "Metadata")
 
     # Create AWS resource attributs in map
     resource_attributs =
@@ -121,6 +124,9 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
       |> add_ressource_attribut_if_not_empty("Properties", props)
       |> add_ressource_attribut_if_not_empty("CreationPolicy", creation_policy)
       |> add_ressource_attribut_if_not_empty("UpdatePolicy", update_policy)
+      |> add_ressource_attribut_if_not_empty("DeletionPolicy", deletion_policy)
+      |> add_ressource_attribut_if_not_empty("UpdateReplacePolicy", update_replace_policy)
+      |> add_ressource_attribut_if_not_empty("Metadata", metadata)
 
     {
       resource_name,
