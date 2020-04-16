@@ -806,4 +806,50 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
 
     assert yaml_test == yaml_generate
   end
+
+  test "Check update policy and creation policy" do
+    text = ~S"""
+    AWS::Resource::AutoScaling::AutoScalingGroup(:auto_scaling_group) {
+      availability_zones = get_azs()
+      launch_configuration_name = :launch_config
+      desired_capacity = 3
+      min_size = 1
+      max_size = 4
+
+      // Attribut of resource is same place that properties
+      creation_policy = {
+        resource_signal = {
+          count = 3
+          timeout = "PT15M"
+        }
+      }
+
+      update_policy = {
+        auto_scaling_scheduled_action = {
+          ignore_unmodified_group_size_properties = true
+        }
+        auto_scaling_rolling_update = {
+          min_instances_in_service = 1
+          max_batch_size = 2
+          pause_time = "PT1M"
+          wait_on_resource_signals = true
+        }
+      }
+    }
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+    yaml_generate = AWS.Yaml.gen(state[:modules])
+
+    yaml_test =
+      "Resources:\n  AutoScalingGroup:\n    CreationPolicy:\n      ResourceSignal:\n        Count: 3\n        Timeout: PT15M\n    DependsOn: LaunchConfig\n    Properties:\n      AvailabilityZones: \n        Fn::GetAZs: \"\"\n      DesiredCapacity: 3\n      LaunchConfigurationName: !Ref LaunchConfig\n      MaxSize: 4\n      MinSize: 1\n    Type: AWS::AutoScaling::AutoScalingGroup\n    UpdatePolicy:\n      AutoScalingRollingUpdate:\n        MaxBatchSize: 2\n        MinInstancesInService: 1\n        PauseTime: PT1M\n        WaitOnResourceSignals: true\n      AutoScalingScheduledAction:\n        IgnoreUnmodifiedGroupSizeProperties: true"
+
+    assert yaml_test == yaml_generate
+  end
 end

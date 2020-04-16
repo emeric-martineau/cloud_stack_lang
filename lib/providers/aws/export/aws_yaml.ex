@@ -67,6 +67,8 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     generate({:map, data}, "")
   end
 
+  # Module start always by provider, then type of module.
+  # E.g. AWS::Resource::xxxxx
   defp filter_by_type(aws_module, type),
     do:
       aws_module
@@ -75,12 +77,15 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
         domain == type
       end)
 
+  # Generate all resource for AWS.
+  # Input type is array.
   defp generate_aws_resources_map(aws_resources),
     do:
       aws_resources
       |> Enum.map(&generate_one_aws_resources/1)
       |> Map.new()
 
+  # In AWS CloudFormation file, some data are not attached to a resource.
   defp generate_aws_global_map(aws_resources),
     do:
       aws_resources
@@ -104,6 +109,9 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     depends_on = DependencyManager.generate_depends_on_properties(resource_properties)
     props = Map.delete(props, "DependsOn")
 
+    {props, creation_policy} = map_get_and_delete(props, "CreationPolicy")
+    {props, update_policy} = map_get_and_delete(props, "UpdatePolicy")
+
     # Create AWS resource attributs in map
     resource_attributs =
       %{
@@ -111,6 +119,8 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
       }
       |> add_ressource_attribut_if_not_empty("DependsOn", depends_on)
       |> add_ressource_attribut_if_not_empty("Properties", props)
+      |> add_ressource_attribut_if_not_empty("CreationPolicy", creation_policy)
+      |> add_ressource_attribut_if_not_empty("UpdatePolicy", update_policy)
 
     {
       resource_name,
@@ -137,12 +147,12 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
 
   # Get value and delete it.
   # return {map, value}
-  # defp map_get_and_delete(map, key) do
-  #  value = Map.get(map, key, nil)
-  # new_map = Map.delete(map, key)
-  #
-  #  {new_map, value}
-  # end
+  defp map_get_and_delete(map, key) do
+    value = Map.get(map, key, nil)
+    new_map = Map.delete(map, key)
+
+    {new_map, value}
+  end
 
   ##################################### Ref ###################################
   defp generate({:atom, data}, _indent) do
