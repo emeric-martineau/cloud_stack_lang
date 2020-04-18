@@ -290,3 +290,42 @@ AWS::Resource::AutoScaling::LaunchConfiguration(:launch_config) {
                           /opt/aws/bin/cfn-signal -e $? --stack \${AWS::StackName} --resource ${name(:auto_scaling_group)} --region \${AWS::Region}"))
 }
 ```
+
+## Create EC2 with mapping
+
+```
+AWS::Map(:region_map {
+  "us-east-1" = {
+    "HVM64" = "ami-0ff8a91507f77f867"
+    "HVMG2" = "ami-0a584ac55a7631c0c"
+  }
+
+  "us-west-1" = {
+    "HVM64" = "ami-0bdb828fd58c52235"
+    "HVMG2" = "ami-066ee5fd4a9ef77f1"
+  }
+
+  "eu-west-1" = {
+    "HVM64" = "ami-047bb4163c506cd98"
+    "HVMG2" = "ami-0a7c483d527806435"
+  }
+
+  "eu-northeast-1" = {
+    "HVM64" = "ami-06cd52961ce9f0d85"
+    "HVMG2" = "ami-053cdd503598e4a9d"
+  }
+
+  "eu-southeast-1" = {
+    "HVM64" = "ami-08569b978cc4dfa10"
+    "HVMG2" = "ami-0be9df32ae9f92309"
+  }
+})
+
+AWS::Resource::EC2::Instance(:my_instance) {
+  image_id = find_in_map(
+    :region_map
+    ref("AWS::Region")
+    "HVM64")
+  instance_type = "m1.small"
+}
+```

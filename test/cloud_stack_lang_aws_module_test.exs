@@ -171,7 +171,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
       availability_zone = "eu-west-1a"
       image_id = "ami-0713f98de93617bb4"
       instance_type = "t2.micro"
-      security_groups = ref("ssh_security_group")
+      security_groups = ref("SshSecurityGroup")
     }
     """
 
@@ -184,7 +184,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
           "AvailabilityZone" => {:string, "eu-west-1a"},
           "ImageId" => {:string, "ami-0713f98de93617bb4"},
           "InstanceType" => {:string, "t2.micro"},
-          "SecurityGroups" => {:atom, :ssh_security_group}
+          "SecurityGroups" => {:module_fct, "ref", {:string, "SshSecurityGroup"}}
         }}}
     ]
 
@@ -202,7 +202,7 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     yaml_generate = AWS.Yaml.gen(module_result)
 
     yaml_test =
-      "Resources:\n  MyInstance:\n    DependsOn: SshSecurityGroup\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      SecurityGroups: !Ref SshSecurityGroup\n    Type: AWS::EC2::Instance"
+      "Resources:\n  MyInstance:\n    Properties:\n      AvailabilityZone: eu-west-1a\n      ImageId: ami-0713f98de93617bb4\n      InstanceType: t2.micro\n      SecurityGroups: !Ref SshSecurityGroup\n    Type: AWS::EC2::Instance"
 
     assert yaml_test == yaml_generate
   end
@@ -951,6 +951,162 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
 
     yaml_test =
       "Resources:\n  LaunchConfig:\n    Properties:\n      ImageId: ami-06ce3edf0cff21f07\n      InstanceType: t2.micro\n      UserData: \n        Fn::Base64: \n          Fn::Sub:\n            - ${AWS::StackName} --resource AutoScalingGroup --region ${AWS::Region}\n            - \n              a: 1\n              b: 2\n    Type: AWS::AutoScaling::LaunchConfiguration"
+
+    assert yaml_test == yaml_generate
+  end
+
+  test "Call find_in_map with atom, atom, atom" do
+    text = ~S"""
+    AWS::Map(:region_map) {
+      root_key = {
+        key1 = "ami-0ff8a91507f77f867"
+        key2 = "ami-0a584ac55a7631c0c"
+      }
+    }
+
+    AWS::Resource::EC2::Instance(:my_instance) {
+      image_id = find_in_map(
+        :region_map
+        :root_key
+        :key1)
+      instance_type = "t2.micro"
+    }
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+    yaml_generate = AWS.Yaml.gen(state[:modules])
+
+    yaml_test =
+      "Mappings:\n  RegionMap:\n    RootKey:\n      Key1: ami-0ff8a91507f77f867\n      Key2: ami-0a584ac55a7631c0c\nResources:\n  MyInstance:\n    Properties:\n      ImageId: \n        Fn::FindInMap:\n          - RegionMap\n          - RootKey\n          - Key1\n      InstanceType: t2.micro\n    Type: AWS::EC2::Instance"
+
+    assert yaml_test == yaml_generate
+  end
+
+  test "Call find_in_map with atom, fct call, string" do
+    text = ~S"""
+    AWS::Map(:region_map {
+      "us-east-1" = {
+        "HVM64" = "ami-0ff8a91507f77f867"
+        "HVMG2" = "ami-0a584ac55a7631c0c"
+      }
+
+      "us-west-1" = {
+        "HVM64" = "ami-0bdb828fd58c52235"
+        "HVMG2" = "ami-066ee5fd4a9ef77f1"
+      }
+
+      "eu-west-1" = {
+        "HVM64" = "ami-047bb4163c506cd98"
+        "HVMG2" = "ami-0a7c483d527806435"
+      }
+
+      "eu-northeast-1" = {
+        "HVM64" = "ami-06cd52961ce9f0d85"
+        "HVMG2" = "ami-053cdd503598e4a9d"
+      }
+
+      "eu-southeast-1" = {
+        "HVM64" = "ami-08569b978cc4dfa10"
+        "HVMG2" = "ami-0be9df32ae9f92309"
+      }
+    })
+
+    AWS::Map(:dummy {
+      "root_key" = {
+        "key1" = "ami-0ff8a91507f77f867"
+        "key2" = "ami-0a584ac55a7631c0c"
+      }
+    })
+
+    AWS::Resource::EC2::Instance(:my_instance) {
+      image_id = find_in_map(
+        :region_map
+        ref("AWS::Region")
+        "HVM64")
+      instance_type = "m1.small"
+    }
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+    yaml_generate = AWS.Yaml.gen(state[:modules])
+
+    yaml_test =
+      "Mappings:\n  Dummy:\n    root_key:\n      key1: ami-0ff8a91507f77f867\n      key2: ami-0a584ac55a7631c0c\n  RegionMap:\n    eu-northeast-1:\n      HVM64: ami-06cd52961ce9f0d85\n      HVMG2: ami-053cdd503598e4a9d\n    eu-southeast-1:\n      HVM64: ami-08569b978cc4dfa10\n      HVMG2: ami-0be9df32ae9f92309\n    eu-west-1:\n      HVM64: ami-047bb4163c506cd98\n      HVMG2: ami-0a7c483d527806435\n    us-east-1:\n      HVM64: ami-0ff8a91507f77f867\n      HVMG2: ami-0a584ac55a7631c0c\n    us-west-1:\n      HVM64: ami-0bdb828fd58c52235\n      HVMG2: ami-066ee5fd4a9ef77f1\nResources:\n  MyInstance:\n    Properties:\n      ImageId: \n        Fn::FindInMap:\n          - RegionMap\n          - !Ref AWS::Region\n          - HVM64\n      InstanceType: m1.small\n    Type: AWS::EC2::Instance"
+
+    assert yaml_test == yaml_generate
+  end
+
+  test "Call find_in_map with atom, string, string" do
+    text = ~S"""
+    AWS::Map(:region_map {
+      "root_key" = {
+        "key1" = "ami-0ff8a91507f77f867"
+        "key2" = "ami-0a584ac55a7631c0c"
+      }
+    })
+
+    AWS::Resource::EC2::Instance(:my_instance) {
+      image_id = find_in_map(
+        :region_map
+        "root_key"
+        "key1")
+      instance_type = "t2.micro"
+    }
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+    yaml_generate = AWS.Yaml.gen(state[:modules])
+
+    yaml_test =
+      "Mappings:\n  RegionMap:\n    root_key:\n      key1: ami-0ff8a91507f77f867\n      key2: ami-0a584ac55a7631c0c\nResources:\n  MyInstance:\n    Properties:\n      ImageId: \n        Fn::FindInMap:\n          - RegionMap\n          - root_key\n          - key1\n      InstanceType: t2.micro\n    Type: AWS::EC2::Instance"
+
+    assert yaml_test == yaml_generate
+  end
+
+  test "Call find_in_map with map.xxxx" do
+    text = ~S"""
+    AWS::Map(:region_map {
+      "RootKey" = {
+        "Key1" = "ami-0ff8a91507f77f867"
+        "Key2" = "ami-0a584ac55a7631c0c"
+      }
+    })
+
+    AWS::Resource::EC2::Instance(:my_instance) {
+      image_id = map.region_map.root_key.key1()
+      instance_type = "t2.micro"
+    }
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+    yaml_generate = AWS.Yaml.gen(state[:modules])
+
+    yaml_test =
+      "Mappings:\n  RegionMap:\n    RootKey:\n      Key1: ami-0ff8a91507f77f867\n      Key2: ami-0a584ac55a7631c0c\nResources:\n  MyInstance:\n    Properties:\n      ImageId: \n        Fn::FindInMap:\n          - RegionMap\n          - RootKey\n          - Key1\n      InstanceType: t2.micro\n    Type: AWS::EC2::Instance"
 
     assert yaml_test == yaml_generate
   end

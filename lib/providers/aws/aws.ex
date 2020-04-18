@@ -36,8 +36,9 @@ defmodule CloudStackLang.Providers.AWS do
       :ref => {:manager, &aws_fct_manager/2},
       :base64 => {:manager, &aws_fct_manager/2},
       :cidr => {:manager, &aws_fct_manager/2},
-      # TODO
       :find_in_map => {:manager, &aws_fct_manager/2},
+      # Shortcut of find_in_map
+      :map => {:manager, &aws_fct_manager/2},
       :get_att => {:manager, &aws_fct_manager/2},
       # Shortcut of get_att
       :module => {:manager, &aws_fct_manager/2},
@@ -54,7 +55,7 @@ defmodule CloudStackLang.Providers.AWS do
 
   ####################################### Ref #################################
   defp aws_fct_manager([{:name, _line, 'ref'}], [{:string, item}]),
-    do: {:atom, String.to_atom(item)}
+    do: {:module_fct, "ref", {:string, item}}
 
   defp aws_fct_manager([{:name, _line, 'ref'}], [{:atom, item}]), do: {:atom, item}
 
@@ -191,9 +192,7 @@ defmodule CloudStackLang.Providers.AWS do
     attribute_name =
       properties
       |> Enum.map(fn {:name, _line, property_name} ->
-        property_name
-        |> List.to_string()
-        |> Macro.camelize()
+        convert_list_to_name(property_name)
       end)
       |> Enum.join(".")
 
@@ -221,20 +220,68 @@ defmodule CloudStackLang.Providers.AWS do
     do: wrong_argument("sub", "1 or 2", args)
 
   ####################################### name() #################################
-  defp aws_fct_manager([{:name, _line, 'name'}], [{:atom, item}]) do
-    name =
-      item
-      |> Atom.to_string()
-      |> Macro.camelize()
-
-    {:string, name}
-  end
+  defp aws_fct_manager([{:name, _line, 'name'}], [{:atom, item}]),
+    do: convert_atom_to_csl_string(item)
 
   defp aws_fct_manager([{:name, _line, 'name'}], [{type, _item}]),
     do: base_argument("name", 0, "':atom'", type)
 
   defp aws_fct_manager([{:name, _line, 'name'}], args),
     do: wrong_argument("name", 1, args)
+
+  ####################################### FindInMap #################################
+  defp aws_fct_manager([{:name, _line, 'find_in_map'}], [
+         map_name,
+         top_level_key,
+         second_level_key
+       ]) do
+    map_name = find_in_map_convert(map_name)
+    top_level_key = find_in_map_convert(top_level_key)
+    second_level_key = find_in_map_convert(second_level_key)
+
+    find_in_map_return_value(map_name, top_level_key, second_level_key)
+  end
+
+  defp aws_fct_manager([{:name, _line, 'find_in_map'}], args),
+    do: wrong_argument("find_in_map", 3, args)
+
+  defp aws_fct_manager([{:name, line, 'map'} | data], []) do
+    [{:name, _, mapping_name}, {:name, _, key_root}, {:name, _, key_name}] = data
+
+    aws_fct_manager([{:name, line, 'find_in_map'}], [
+      {:atom, List.to_atom(mapping_name)},
+      {:atom, List.to_atom(key_root)},
+      {:atom, List.to_atom(key_name)}
+    ])
+  end
+
+  defp find_in_map_convert(item) do
+    case item do
+      {:atom, data} -> convert_atom_to_csl_string(data)
+      {:string, data} -> {:string, data}
+      {:module_fct, fct_name, args} -> {:module_fct, fct_name, args}
+      _ -> {:error}
+    end
+  end
+
+  defp find_in_map_return_value({:error}, _top_level_key, _second_level_key),
+    do: {:error, "The argument n°0 waiting ':atom' or ':string' or 'function call'."}
+
+  defp find_in_map_return_value(_map_name, {:error}, _second_level_key),
+    do: {:error, "The argument n°1 waiting ':atom' or ':string' or 'function call'."}
+
+  defp find_in_map_return_value(_map_name, _top_level_key, {:error}),
+    do: {:error, "The argument n°2 waiting ':atom' or ':string' or 'function call'."}
+
+  defp find_in_map_return_value(map_name, top_level_key, second_level_key),
+    do:
+      {:module_fct, "find_in_map",
+       {:array,
+        [
+          map_name,
+          top_level_key,
+          second_level_key
+        ]}}
 
   #################################### Error ##################################
   defp wrong_argument(fct_name, nb_args, args),
@@ -246,4 +293,19 @@ defmodule CloudStackLang.Providers.AWS do
        "Bad type argument for '#{fct_name}'. The argument n°#{index} waiting #{type_waiting} and given '#{
          type_gived
        }'"}
+
+  #################################### Util ##################################
+  defp convert_list_to_name(n) do
+    n
+    |> List.to_string()
+    |> Macro.camelize()
+  end
+
+  defp convert_atom_to_name(n) do
+    n
+    |> Atom.to_string()
+    |> Macro.camelize()
+  end
+
+  defp convert_atom_to_csl_string(n), do: {:string, convert_atom_to_name(n)}
 end

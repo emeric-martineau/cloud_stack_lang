@@ -143,6 +143,33 @@ defmodule CloudStackLang.Parser do
   end
 
   #
+  # Save the module in state of parser.
+  #
+  # Examples:
+  #
+  #    iex> namespace = [{:name, 1, 'AWS'}, {:name, 1, 'Resource', {:name, 1, 'Type'}}]
+  #    ...> name = {:atom, :my_module}
+  #    ...> args = {:map, %{ "availability_zone" => {:string, "eu-west-1a"}}
+  #    ...> save_module_in_state(namespace, name, args, %{}, [])
+  #
+  defp save_module_without_properties_in_state(namespace, name, args, state, next_running_code) do
+    cloud_type = Module.convert_list_of_name_to_list_of_string(namespace)
+
+    cloud_name =
+      name
+      |> Module.convert_module_name(fn x -> Reduce.to_value(x, %{}) end)
+
+    cloud_module = {cloud_name, cloud_type, args}
+
+    new_state =
+      state
+      |> Map.update(:modules, [], fn v -> [cloud_module | v] end)
+      |> Map.update(:in_module, false, fn _ -> false end)
+
+    evaluate_tree(next_running_code, new_state)
+  end
+
+  #
   # Evaluate assignation `a = 1`.
   #
   # Examples:
@@ -210,7 +237,10 @@ defmodule CloudStackLang.Parser do
   #      | []
   #    ], %{})
   #
-  defp evaluate_tree([{:module, namespace, name, map_properties} | tail], state) do
+  defp evaluate_tree(
+         [{:module, namespace, name, {:build_module_map, _, properties}} | tail],
+         state
+       ) do
     # Create new state to authorize use name in key of map
     module_state =
       state
@@ -223,9 +253,7 @@ defmodule CloudStackLang.Parser do
         Map.merge(fct, Util.get_module_fct(module_state, namespace))
       end)
 
-    {:build_module_map, _, properties} = map_properties
-
-    new_prop =
+    new_props =
       properties
       |> Enum.map(fn {:module_map_arg, {:name, _line, prop_name}, value} ->
         name =
@@ -239,10 +267,32 @@ defmodule CloudStackLang.Parser do
     fct_reduce = fn {_prop_name, value} -> value end
 
     # Check if error in properties
-    Util.call_if_no_error(new_prop, fct_reduce, &save_module_in_state/5, [
+    Util.call_if_no_error(new_props, fct_reduce, &save_module_in_state/5, [
       namespace,
       name,
-      new_prop,
+      new_props,
+      module_state,
+      tail
+    ])
+  end
+
+  defp evaluate_tree([{:module, namespace, name, {:build_map, line, properties}} | tail], state) do
+    # Merge global function and module function only for properties
+    module_state =
+      state
+      |> Map.update(:fct, %{}, fn fct ->
+        Map.merge(fct, Util.get_module_fct(state, namespace))
+      end)
+
+    new_props = Reduce.to_value({:build_map, line, properties}, module_state)
+
+    fct_reduce = fn {_prop_name, value} -> value end
+
+    # Check if error in properties
+    Util.call_if_no_error([new_props], fct_reduce, &save_module_without_properties_in_state/5, [
+      namespace,
+      name,
+      new_props,
       module_state,
       tail
     ])

@@ -242,9 +242,22 @@ Invoke:
  - `sub(text: string)`;
  - `sub(text: string, data: map)`.
 
+### FN::FindInMap
+
+```
+find_in_map(:my_mapping, :top_level_key, :second_level_key)
+
+map.my_mapping.top_level_key.second_level_key()
+```
+
+Invoke: 
+ - `find_in_map(mapping_name: atom, top_level_key: atom | string | fct call, second_level_key: atom | string | fct call)`.
+
+Another possible invoke is using `map.<mapping name>.<top level key>.<second level key>()`.
+
 ### !Ref
 
-CSL provide three equivalent function. To do this, use atom.
+CSL provide three equivalents functions. To do this, use atom.
 ```
 AWS::Resource::EC2::Instance(:my_instance) {
   // ...
@@ -262,7 +275,7 @@ Invoke:
  - `ref(resource_name: atom)`;
  - `ref(resource_name: string)`.
 
-If you use string for name, CSL can detect dependency.
+If you use string for name, CSL can't detect dependency. Use it when you reference AWS parameter `AWS::xxx`.
 
 ### name()
 
@@ -271,6 +284,30 @@ use signal. To do this you can use `name()`.
 
 Invoke: 
  - `name(resource_name: atom)`.
+
+## Mapping
+
+AWS allow you to add mapping in CloudFormation file. To do this with Cloud
+Stack Lang, just declare map like this:
+
+```
+AWS::Map(:my_map_name {
+  "root_key" = {
+    "key1" = "1"
+    "key2" = "2"
+  }
+})
+
+AWS::Resource::EC2::Instance(:my_instance) {
+  image_id = find_in_map(:my_map_name "root_key" "key1")
+  instance_type = "m1.small"
+}
+
+AWS::Resource::EC2::Instance(:my_instance) {
+  image_id = map.my_map_name.root_key.key1()
+  instance_type = "m1.small"
+}
+```
 
 ## Why atom name is so important ?
 
