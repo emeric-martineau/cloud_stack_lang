@@ -49,15 +49,16 @@ defmodule CloudStackLang.Providers.AWS do
       :split => {:manager, &aws_fct_manager/2},
       # TODO
       :sub => {:manager, &aws_fct_manager/2},
-      :transform => {:manager, &aws_fct_manager/2}
+      :transform => {:manager, &aws_fct_manager/2},
+      :name => {:manager, &aws_fct_manager/2}
     }
 
+  ####################################### Ref #################################
   defp aws_fct_manager([{:name, _line, 'ref'}], [{:string, item}]),
     do: {:atom, String.to_atom(item)}
 
   defp aws_fct_manager([{:name, _line, 'ref'}], [{:atom, item}]), do: {:atom, item}
 
-  ####################################### Ref #################################
   defp aws_fct_manager([{:name, _line, 'ref'}], [{type, _item}]),
     do: base_argument("ref", 0, "':atom' or ':string'", type)
 
@@ -206,6 +207,22 @@ defmodule CloudStackLang.Providers.AWS do
 
   defp aws_fct_manager([{:name, _line, 'get_att'}], args),
     do: wrong_argument("get_att", 2, args)
+
+  ####################################### name() #################################
+  defp aws_fct_manager([{:name, _line, 'name'}], [{:atom, item}]) do
+    name =
+      item
+      |> Atom.to_string()
+      |> Macro.camelize()
+
+    {:string, name}
+  end
+
+  defp aws_fct_manager([{:name, _line, 'name'}], [{type, _item}]),
+    do: base_argument("name", 0, "':atom'", type)
+
+  defp aws_fct_manager([{:name, _line, 'name'}], args),
+    do: wrong_argument("name", 1, args)
 
   #################################### Error ##################################
   defp wrong_argument(fct_name, nb_args, args),

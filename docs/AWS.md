@@ -146,8 +146,8 @@ cidr(
 ```
 
 Invoke: 
- - `cidr(ip_block : string, count: int, cidr_bits: int)`;
- - `cidr(ip_block : function call, count: int, cidr_bits: int)`.
+ - `cidr(ip_block: string, count: int, cidr_bits: int)`;
+ - `cidr(ip_block: function call, count: int, cidr_bits: int)`.
 
 
 ### Fn::GetAtt
@@ -176,7 +176,7 @@ join("," [ "a" "b" "c" ])
 ```
 
 Invoke: 
- - `join(delimiter : string, data: array)`.
+ - `join(delimiter: string, data: array)`.
 
 ### Fn::Select
 
@@ -195,8 +195,8 @@ select(
 ```
 
 Invoke: 
- - `select(index : int, data: array)`;
- - `select(index : int, data: function call)`.
+ - `select(index: int, data: array)`;
+ - `select(index: int, data: function call)`.
 
 ### Fn::Split
 
@@ -207,8 +207,8 @@ split("," module.example_vpc.name())
 ```
 
 Invoke: 
- - `split(delimiter : string, data: string)`;
- - `split(delimiter : string, data: function call)`.
+ - `split(delimiter: string, data: string)`;
+ - `split(delimiter: string, data: function call)`.
  
 
 ### Fn::Transform
@@ -221,11 +221,11 @@ transform("my_macro", {
 ```
 
 Invoke: 
- - `transform(macro_name : string, data: map)`;
+ - `transform(macro_name: string, data: map)`.
 
 ### !Ref
 
-CSL don't provide `!Ref` equivalent function. To do this, use atom.
+CSL provide three equivalent function. To do this, use atom.
 ```
 AWS::Resource::EC2::Instance(:my_instance) {
   // ...
@@ -236,6 +236,22 @@ AWS::Resource::EC2::SecurityGroup(:ssh_security_group) {
   // ...
 }
 ```
+
+or you can use `ref()`.
+
+Invoke: 
+ - `ref(resource_name: atom)`;
+ - `ref(resource_name: string)`.
+
+If you use string for name, CSL can detect dependency.
+
+### name()
+
+Sometime, you need have the final CloudFormation resource name, for example to
+use signal. To do this you can use `name()`. 
+
+Invoke: 
+ - `name(resource_name: atom)`.
 
 ## Why atom name is so important ?
 

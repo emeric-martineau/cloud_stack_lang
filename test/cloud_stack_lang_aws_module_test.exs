@@ -873,4 +873,30 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
 
     assert yaml_test == yaml_generate
   end
+
+  test "Call name function" do
+    text = ~S"""
+    AWS::Resource::EC2::Instance(:my_instance0) {
+      availability_zone = name(:my_instance0)
+    }
+    """
+
+    var_result = %{}
+
+    module_result = [
+      {"MyInstance0", ["AWS", "Resource", "EC2", "Instance"],
+       {:map, %{"AvailabilityZone" => {:string, "MyInstance0"}}}}
+    ]
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+
+    assert state[:vars] == var_result
+    assert state[:modules] == module_result
+  end
 end
