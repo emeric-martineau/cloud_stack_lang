@@ -47,7 +47,6 @@ defmodule CloudStackLang.Providers.AWS do
       :join => {:manager, &aws_fct_manager/2},
       :select => {:manager, &aws_fct_manager/2},
       :split => {:manager, &aws_fct_manager/2},
-      # TODO
       :sub => {:manager, &aws_fct_manager/2},
       :transform => {:manager, &aws_fct_manager/2},
       :name => {:manager, &aws_fct_manager/2}
@@ -207,6 +206,19 @@ defmodule CloudStackLang.Providers.AWS do
 
   defp aws_fct_manager([{:name, _line, 'get_att'}], args),
     do: wrong_argument("get_att", 2, args)
+
+  ####################################### Sub #################################
+  defp aws_fct_manager([{:name, _line, 'sub'}], [{:string, pattern}]),
+    do: {:module_fct, "sub", {:array, [{:string, pattern}]}}
+
+  defp aws_fct_manager([{:name, _line, 'sub'}], [{:string, pattern}, {:map, data}]),
+    do: {:module_fct, "sub", {:array, [{:string, pattern}, {:map, data}]}}
+
+  defp aws_fct_manager([{:name, _line, 'sub'}], [_, _]),
+    do: {:error, "Bad type argument for 'sub'. Waiting (':string' [ , ':map'])"}
+
+  defp aws_fct_manager([{:name, _line, 'sub'}], args),
+    do: wrong_argument("sub", "1 or 2", args)
 
   ####################################### name() #################################
   defp aws_fct_manager([{:name, _line, 'name'}], [{:atom, item}]) do

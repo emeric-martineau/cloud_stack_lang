@@ -251,3 +251,42 @@ AWS::Resource::EC2::Subnet(:example_subnet) {
   vpc_id = :example_vpc
 }
 ```
+
+### Auto-scaling group
+
+```
+AWS::Resource::AutoScaling::AutoScalingGroup(:auto_scaling_group) {
+  availability_zones = get_azs()
+  launch_configuration_name = :launch_config
+  desired_capacity = 3
+  min_size = 1
+  max_size = 4
+  // Attribut of resource is same place that properties
+  creation_policy = {
+    resource_signal = {
+      count = 3
+      timeout = "PT15M"
+    }
+  }
+
+  update_policy = {
+    auto_scaling_scheduled_action = {
+      ignore_unmodified_group_size_properties = true
+    }
+    auto_scaling_rolling_update = {
+      min_instances_in_service = 1
+      max_batch_size = 2
+      pause_time = "PT1M"
+      wait_on_resource_signals = true
+    }
+  }
+}
+
+AWS::Resource::AutoScaling::LaunchConfiguration(:launch_config) {
+  image_id = "ami-06ce3edf0cff21f07"
+  instance_type = "t2.micro"
+  user_data = base64(sub("#!/bin/bash -xe
+                          yum update -y aws-cfn-bootstrap
+                          /opt/aws/bin/cfn-signal -e $? --stack \${AWS::StackName} --resource ${name(:auto_scaling_group)} --region \${AWS::Region}"))
+}
+```

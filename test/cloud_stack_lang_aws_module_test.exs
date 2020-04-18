@@ -899,4 +899,59 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
     assert state[:vars] == var_result
     assert state[:modules] == module_result
   end
+
+  test "Call sub with one argument" do
+    text = ~S"""
+    AWS::Resource::AutoScaling::LaunchConfiguration(:launch_config) {
+    image_id = "ami-06ce3edf0cff21f07"
+    instance_type = "t2.micro"
+    user_data = base64(sub("\${AWS::StackName} --resource ${name(:auto_scaling_group)} --region \${AWS::Region}"))
+    }
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+    yaml_generate = AWS.Yaml.gen(state[:modules])
+
+    yaml_test =
+      "Resources:\n  LaunchConfig:\n    Properties:\n      ImageId: ami-06ce3edf0cff21f07\n      InstanceType: t2.micro\n      UserData: \n        Fn::Base64: \n          Fn::Sub:\n            - ${AWS::StackName} --resource AutoScalingGroup --region ${AWS::Region}\n    Type: AWS::AutoScaling::LaunchConfiguration"
+
+    assert yaml_test == yaml_generate
+  end
+
+  test "Call sub with two argument" do
+    text = ~S"""
+    AWS::Resource::AutoScaling::LaunchConfiguration(:launch_config) {
+    image_id = "ami-06ce3edf0cff21f07"
+    instance_type = "t2.micro"
+    user_data =
+      base64(
+        sub(
+          "\${AWS::StackName} --resource ${name(:auto_scaling_group)} --region \${AWS::Region}"
+          {
+            a = "1"
+            b = "2"
+          }))
+    }
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+    yaml_generate = AWS.Yaml.gen(state[:modules])
+
+    yaml_test =
+      "Resources:\n  LaunchConfig:\n    Properties:\n      ImageId: ami-06ce3edf0cff21f07\n      InstanceType: t2.micro\n      UserData: \n        Fn::Base64: \n          Fn::Sub:\n            - ${AWS::StackName} --resource AutoScalingGroup --region ${AWS::Region}\n            - \n              a: 1\n              b: 2\n    Type: AWS::AutoScaling::LaunchConfiguration"
+
+    assert yaml_test == yaml_generate
+  end
 end

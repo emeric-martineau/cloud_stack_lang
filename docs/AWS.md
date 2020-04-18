@@ -214,14 +214,33 @@ Invoke:
 ### Fn::Transform
 
 ```
-transform("my_macro", {
-  data1 = "1"
-  data2 = "2"
-})
+transform(
+  "my_macro"
+  {
+    data1 = "1"
+    data2 = "2"
+  })
 ```
 
 Invoke: 
  - `transform(macro_name: string, data: map)`.
+
+### FN::Sub
+
+```
+sub("my text")
+
+sub(
+  "my text"
+  {
+    data1 = "1"
+    data2 = "2"
+  })
+```
+
+Invoke: 
+ - `sub(text: string)`;
+ - `sub(text: string, data: map)`.
 
 ### !Ref
 

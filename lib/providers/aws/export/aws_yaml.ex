@@ -312,6 +312,13 @@ defmodule CloudStackLang.Providers.AWS.Yaml do
     "\n#{indent}Fn::GetAtt:\n#{result}"
   end
 
+  #################################### Sub ###################################
+  defp generate({:module_fct, "sub", {:array, data}}, indent) do
+    result = generate({:array, data}, "#{indent}  ")
+
+    "\n#{indent}Fn::Sub:\n#{result}"
+  end
+
   # TODO check atom to make automatic depondson, check also GetAttr
   # TODO allow ref to AWS::xxx variable
   # Fn::GetAZs:
