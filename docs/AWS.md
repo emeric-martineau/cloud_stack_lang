@@ -285,6 +285,10 @@ use signal. To do this you can use `name()`.
 Invoke: 
  - `name(resource_name: atom)`.
 
+## Condition functions
+
+Not yet implemented.
+
 ## Mapping
 
 AWS allow you to add mapping in CloudFormation file. To do this with Cloud
@@ -308,6 +312,74 @@ AWS::Resource::EC2::Instance(:my_instance) {
   instance_type = "m1.small"
 }
 ```
+
+## Parameters
+
+Not yet implemented.
+
+## Conditions
+
+Not yet implemented.
+
+## Outputs
+
+Not yet implemented.
+
+## Macro
+
+Macro is like Resource:
+
+```
+AWS::Resource::CloudFormation::Macro(:macro) {
+  name = sub('${AWS::StackName}')
+  description = "Adds a blank WaitConditionHandle named 'WaitHandle'"
+  function_name = "arn:aws:lambda:us-east-1:012345678910:function:JavaMacroFunc"
+}
+```
+
+## Stack
+
+Stack is like Resource:
+
+```
+AWS::Resource::CloudFormation::Stack(:my_stack_with_params) {
+  template_uRL = "https://s3.amazonaws.com/cloudformation-templates-us-east-2/EC2ChooseAMI.template"
+  parameters  { 
+    instance_type = "t1.micro"
+    key_name = "mykey"
+  }
+}
+```
+
+## Custom resource
+
+Not yet implemented.
+
+## Wait condition & Wait condition handle
+
+Wait condition & Wait condition handle are like Resource:
+
+```
+AWS::AutoScaling::AutoScalingGroup(:web_server_group) {
+  availability_zones = get_azs()
+  launch_configuration_name = :launch_config
+  min_size = 1
+  max_size = 5
+  desired_capacity = ref("WebServerCapacity")
+  load_balancer_names = [ :elastic_load_balancer ] 
+}
+
+AWS::CloudFormation::WaitConditionHandle(:wait_handle) {
+}
+
+AWS::CloudFormation::WaitCondition(:wait_condition) {
+  depends_on = :web_server_group"
+  handle = :wait_handle 
+  timeout = 300
+  count = ref("WebServerCapacity")
+}
+```
+
 
 ## Why atom name is so important ?
 
