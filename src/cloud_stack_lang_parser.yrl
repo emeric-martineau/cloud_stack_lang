@@ -156,6 +156,7 @@ module_namespace -> module_namespace namespace_separator name : lists:append('$1
 
 module -> module_namespace open_parenthesis atom close_parenthesis module_map : {module, '$1', '$3', '$5'}.
 module -> module_namespace open_parenthesis atom map close_parenthesis : {module, '$1', '$3', '$4'}.
+module -> module_namespace open_parenthesis atom name close_parenthesis : {module, '$1', '$3', '$4'}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

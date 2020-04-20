@@ -1110,4 +1110,46 @@ defmodule CloudStackLang.Parser.AwsModuleTest do
 
     assert yaml_test == yaml_generate
   end
+
+  test "Create map with variable" do
+    text = ~S"""
+    my_map = {
+      "RootKey" = {
+        "Key1" = "ami-0ff8a91507f77f867"
+        "Key2" = "ami-0a584ac55a7631c0c"
+      }
+    }
+
+    AWS::Map(:region_map my_map)
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    state = parse_and_eval(text, false, %{}, fct, modules_fct)
+    yaml_generate = AWS.Yaml.gen(state[:modules])
+
+    yaml_test =
+      "Mappings:\n  RegionMap:\n    RootKey:\n      Key1: ami-0ff8a91507f77f867\n      Key2: ami-0a584ac55a7631c0c\nResources:\n"
+
+    assert yaml_test == yaml_generate
+  end
+
+  test "Create mapping with wrong value" do
+    text = ~S"""
+    AWS::Map(:region_map "wrong type")
+    """
+
+    fct = %{}
+
+    modules_fct = %{
+      AWS.prefix() => AWS.modules_functions()
+    }
+
+    assert parse_and_eval(text, false, %{}, fct, modules_fct) ==
+             {1, :cloud_stack_lang_parser, ['syntax error before: ', ['"\\"wrong type\\""']]}
+  end
 end

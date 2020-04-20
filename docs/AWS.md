@@ -302,6 +302,15 @@ AWS::Map(:my_map_name {
   }
 })
 
+my_var = {
+  "root_key" = {
+    "key1" = "1"
+    "key2" = "2"
+  }
+}
+
+AWS::Map(:my_map_name2 my_var)
+
 AWS::Resource::EC2::Instance(:my_instance) {
   image_id = find_in_map(:my_map_name "root_key" "key1")
   instance_type = "m1.small"

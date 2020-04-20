@@ -276,6 +276,34 @@ defmodule CloudStackLang.Parser do
     ])
   end
 
+  #
+  # Evaluate module declaration.
+  #
+  # Examples:
+  #
+  #    iex> evaluate_tree(
+  #    [
+  #      {:module,
+  #        [
+  #          {:name, 1, 'AWS'},
+  #          {:name, 1, 'Resource'},
+  #          {:name, 1, 'EC2'},
+  #          {:name, 1, 'Instance'}
+  #        ], {:atom, 1, ':my_instance'},
+  #        {:build_map, {:open_map, 1},
+  #          [
+  #            {:module_map_arg, {:name, 2, 'availability_zone'},
+  #              {:interpolate_string, 2, '"eu-west-1a"'}},
+  #            {:module_map_arg, {:name, 3, 'image_id'},
+  #              {:interpolate_string, 3, '"ami-0713f98de93617bb4"'}},
+  #            {:module_map_arg, {:name, 4, 'instance_type'},
+  #              {:interpolate_string, 4, '"t2.micro"'}},
+  #            {:module_map_arg, {:name, 5, 'security_groups'},
+  #              {:fct_call, [{:name, 5, 'ref'}], []}}
+  #          ]}}
+  #      | []
+  #    ], %{})
+  #
   defp evaluate_tree([{:module, namespace, name, {:build_map, line, properties}} | tail], state) do
     # Merge global function and module function only for properties
     module_state =
@@ -290,6 +318,63 @@ defmodule CloudStackLang.Parser do
 
     # Check if error in properties
     Util.call_if_no_error([new_props], fct_reduce, &save_module_without_properties_in_state/5, [
+      namespace,
+      name,
+      new_props,
+      module_state,
+      tail
+    ])
+  end
+
+  #
+  # Evaluate module declaration.
+  #
+  # Examples:
+  #
+  #    iex> evaluate_tree(
+  #    [
+  #      {:module,
+  #        [
+  #          {:name, 1, 'AWS'},
+  #          {:name, 1, 'Resource'},
+  #          {:name, 1, 'EC2'},
+  #          {:name, 1, 'Instance'}
+  #        ], {:atom, 1, ':my_instance'},
+  #        {:name, 3, 'data}}
+  #      | []
+  #    ], %{:vars => {:data => {:map, %{} }  } })
+  #
+  defp evaluate_tree([{:module, namespace, name, {:name, line, properties}} | tail], state) do
+    # Merge global function and module function only for properties
+    module_state =
+      state
+      |> Map.update(:fct, %{}, fn fct ->
+        Map.merge(fct, Util.get_module_fct(state, namespace))
+      end)
+
+    new_props = Reduce.to_value({:name, line, properties}, module_state)
+
+    fct_reduce = fn {_prop_name, value} -> value end
+
+    # Check if map
+    fct_no_error = fn namespace, name, new_props, module_state, tail ->
+      case new_props do
+        {:map, _data} ->
+          save_module_without_properties_in_state(
+            namespace,
+            name,
+            new_props,
+            module_state,
+            tail
+          )
+
+        {type, _data} ->
+          {:error, line, "Module args can be only a map. Receive: #{type}."}
+      end
+    end
+
+    # Check if error in properties
+    Util.call_if_no_error([new_props], fct_reduce, fct_no_error, [
       namespace,
       name,
       new_props,
