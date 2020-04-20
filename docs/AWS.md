@@ -313,6 +313,8 @@ AWS::Resource::EC2::Instance(:my_instance) {
 }
 ```
 
+Be careful, mapping have not properties. Mapping content is a parameter of module.
+
 ## Parameters
 
 Not yet implemented.
@@ -343,7 +345,8 @@ Stack is like Resource:
 
 ```
 AWS::Resource::CloudFormation::Stack(:my_stack_with_params) {
-  template_uRL = "https://s3.amazonaws.com/cloudformation-templates-us-east-2/EC2ChooseAMI.template"
+  // TemplateURL cannot write in snake case
+  TemplateURL = "https://s3.amazonaws.com/cloudformation-templates-us-east-2/EC2ChooseAMI.template"
   parameters  { 
     instance_type = "t1.micro"
     key_name = "mykey"

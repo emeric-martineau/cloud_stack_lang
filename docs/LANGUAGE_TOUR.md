@@ -184,7 +184,9 @@ have variable for key name.
 Name of module **must be** an atom. This atom will be use to link module
 between them.
 
-Properties name is snake case of read cloud properties.
+Properties name is snake case of read cloud properties (e.g. `ImageId` to
+`image_id`). If properties cannot be write it with right name (e.g.
+`TemplateURL`). 
 
 ## Intrinsec function
 
